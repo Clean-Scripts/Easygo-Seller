@@ -2,122 +2,188 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/Clean-Scripts/EasyGo-Expense-Tracker/refs/heads/main/logo.png">
     <script src="https://cdn.tailwindcss.com"></script>
-    <title>Easy Go Admin | Command Center</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+    <title>Easy Go Admin | Enterprise Command</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
+        body { font-family: 'Inter', sans-serif; background: #fff; margin: 0; }
+        .admin-bg { background: linear-gradient(rgba(0,0,0,0.9), rgba(0,0,0,0.9)), url('https://raw.githubusercontent.com/Clean-Scripts/EasyGo-Expense-Tracker/refs/heads/main/Banner.png') no-repeat center center fixed; background-size: cover; }
+        .glass-panel { background: rgba(255, 255, 255, 0.99); backdrop-filter: blur(25px); }
+        .stock-critical { background-color: #fee2e2 !important; border-left: 8px solid #ef4444 !important; }
+        .stock-low { background-color: #fff7ed !important; border-left: 8px solid #f97316 !important; }
+    </style>
 </head>
-<body class="bg-slate-900 min-h-screen p-4 md:p-10">
-    <div class="max-w-7xl mx-auto bg-white rounded-[3rem] shadow-2xl overflow-hidden border border-white/20">
-        <div class="p-8 border-b flex flex-col md:flex-row justify-between items-center bg-gray-50">
-            <div class="flex items-center gap-4">
-                <img src="https://raw.githubusercontent.com/Clean-Scripts/EasyGo-Expense-Tracker/refs/heads/main/logo.png" class="h-12">
-                <h1 class="text-2xl font-black uppercase tracking-tighter">Enterprise Command</h1>
+<body class="min-h-screen admin-bg p-4 md:p-8">
+    <div class="max-w-7xl mx-auto glass-panel rounded-[3.5rem] shadow-2xl p-6 md:p-12 border border-white/20">
+        
+        <div class="flex flex-col md:flex-row justify-between items-center mb-10 pb-8 border-b border-gray-100">
+            <div class="flex items-center gap-6">
+                <img src="https://raw.githubusercontent.com/Clean-Scripts/EasyGo-Expense-Tracker/refs/heads/main/logo.png" class="h-16 bg-white rounded-full p-1 shadow-md">
+                <h1 class="text-3xl font-black uppercase text-gray-900 tracking-tighter">Enterprise Command</h1>
             </div>
-            <div class="flex gap-3 mt-4 md:mt-0">
-                <input type="password" id="ghToken" placeholder="Paste GitHub Token" class="px-4 py-2 border rounded-xl text-xs font-bold w-48 shadow-inner">
-                <button onclick="pushToGithub()" class="bg-green-600 text-white px-6 py-2 rounded-xl font-bold uppercase text-[10px] hover:bg-green-700 transition-all">Save & Update Public Menu</button>
-            </div>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 p-8">
-            <div class="bg-indigo-950 p-8 rounded-[2rem] text-white">
-                <p class="text-indigo-400 text-[10px] font-bold uppercase mb-1">Total EBITDA Impact</p>
-                <h2 id="ebitdaDisplay" class="text-5xl font-black">₹0</h2>
-            </div>
-            <div class="bg-blue-50 p-8 rounded-[2rem] border border-blue-100">
-                <p class="text-blue-400 text-[10px] font-bold uppercase mb-1">Sync Status</p>
-                <p class="font-black text-blue-900 uppercase">Target: Clean-Scripts/Easygo-Menu</p>
+            <div class="flex flex-wrap gap-3 mt-6 md:mt-0">
+                <button onclick="pushToGithub()" class="bg-green-600 text-white px-6 py-3 rounded-xl font-bold uppercase text-[10px] shadow-lg animate-pulse">Save & Update Public Menu</button>
+                <button onclick="addNewProduct()" class="bg-gray-800 text-white px-6 py-3 rounded-xl font-bold uppercase text-[10px]">+ Add More Item</button>
             </div>
         </div>
 
-        <div class="px-8 pb-8">
-            <div class="overflow-x-auto rounded-2xl border">
+        <div class="bg-blue-50 p-6 rounded-[2rem] border border-blue-100 mb-8 flex flex-col md:flex-row gap-4 items-center">
+            <p class="text-[10px] font-black text-blue-400 uppercase w-32">Target Repo:</p>
+            <input type="text" id="ghRepo" value="Clean-Scripts/Easygo-Menu" class="flex-grow p-3 rounded-xl border border-blue-200 text-xs font-bold bg-white/50">
+        </div>
+
+        <div class="bg-white rounded-3xl border border-gray-100 shadow-xl overflow-hidden mb-12">
+            <div class="bg-gray-900 p-5 flex justify-between items-center text-white">
+                <h3 class="font-bold text-xs uppercase tracking-widest">Profitability Rank & Stock Alert</h3>
+                <div class="flex gap-4 text-[10px] uppercase font-bold">
+                    <span class="text-orange-400">● < 2kg Stock</span>
+                    <span class="text-red-400">● Out of Stock</span>
+                </div>
+            </div>
+            <div class="overflow-x-auto">
                 <table class="w-full text-left">
-                    <thead class="bg-gray-900 text-white text-[10px] font-black uppercase">
+                    <thead class="bg-gray-50 text-[10px] font-black text-gray-500 uppercase border-b">
                         <tr>
-                            <th class="p-4">Item Name</th>
+                            <th class="p-5">Rank</th>
+                            <th>Item Name</th>
                             <th>Admin (Pieces)</th>
                             <th>Customer (Grams)</th>
-                            <th>Price (₹)</th>
-                            <th>Raw Cost (₹)</th>
-                            <th>Stock (Kg)</th>
-                            <th>Special</th>
+                            <th>Raw/pc</th>
+                            <th>Rate</th>
+                            <th>Stock</th>
+                            <th>Margin</th>
+                            <th>Action</th>
                         </tr>
                     </thead>
-                    <tbody id="mgmtTable" class="divide-y text-xs font-bold"></tbody>
+                    <tbody id="mgmtTable" class="divide-y divide-gray-50 text-xs font-bold text-gray-600"></tbody>
                 </table>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div class="bg-indigo-950 rounded-[2.5rem] p-10 text-white shadow-2xl">
+                <p class="text-indigo-400 text-[10px] font-bold uppercase mb-1">EBITDA Impact (Gross Profit)</p>
+                <h2 id="ebitdaDisplay" class="text-6xl font-black mb-6">₹0</h2>
+                <div class="pt-6 border-t border-indigo-900 flex justify-between">
+                    <div>
+                        <p class="text-[9px] font-bold text-indigo-400 uppercase">GST Credit Available</p>
+                        <p class="text-xl font-black">₹3,076.84</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-[9px] font-bold text-indigo-400 uppercase">Fixed Overhead</p>
+                        <p class="text-xl font-black text-red-400">₹6.39 / Plate</p>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white p-10 rounded-[2.5rem] border border-gray-200 flex flex-col justify-center items-center">
+                <p class="text-[10px] font-black text-gray-400 uppercase mb-4">Manual Sales Tracker</p>
+                <div id="salesInputs" class="grid grid-cols-2 gap-4 w-full"></div>
             </div>
         </div>
     </div>
 
     <script>
-        // YOUR FULL ITEM LIST
+        // REPLACE WITH NEW TOKEN AFTER DELETING OLD ONE
+        const GH_TOKEN = "YOUR_NEW_TOKEN_HERE"; 
+
         let products = [
-            { name: "Steamed Veg Momos", raw: 2.82, std: 70, grams: 0, limit: 5, pcsKg: 39, special: false },
-            { name: "Fried Veg Momos", raw: 2.82, std: 80, grams: 0, limit: 5, pcsKg: 39, special: true },
-            { name: "Steamed Cheese Corn", raw: 3.89, std: 90, grams: 0, limit: 5, pcsKg: 36, special: false },
-            { name: "Fried Cheese Corn", raw: 3.89, std: 100, grams: 0, limit: 5, pcsKg: 36, special: false },
-            { name: "Mini Samosas", raw: 7.27, std: 140, grams: 0, limit: 5, pcsKg: 33, special: false },
-            { name: "French Fries", raw: 0.83, std: 80, grams: 150, limit: 10, pcsKg: 120, special: true }
+            { sort: 1, name: "Steamed Veg Momos", raw: 2.82, std: 70, grams: 0, limit: 5, pcsKg: 39, sold: 0, special: false },
+            { sort: 2, name: "Fried Veg Momos", raw: 2.82, std: 80, grams: 0, limit: 5, pcsKg: 39, sold: 0, special: true },
+            { sort: 3, name: "Steamed Cheese Corn", raw: 3.89, std: 90, grams: 0, limit: 5, pcsKg: 36, sold: 0, special: false },
+            { sort: 4, name: "Fried Cheese Corn", raw: 3.89, std: 100, grams: 0, limit: 5, pcsKg: 36, sold: 0, special: false },
+            { sort: 5, name: "Mini Samosas", raw: 7.27, std: 140, grams: 0, limit: 5, pcsKg: 33, sold: 0, special: false },
+            { sort: 6, name: "French Fries", raw: 0.83, std: 80, grams: 150, limit: 10, pcsKg: 120, sold: 0, special: true }
         ];
+
+        function calculateMargin(p) {
+            const cost = (p.raw * 8) + 6.39;
+            return ((p.std - cost) / p.std) * 100;
+        }
 
         function renderMgmt() {
             const container = document.getElementById('mgmtTable');
-            container.innerHTML = products.map((p, i) => {
-                // Calculation: Standard Rate / Raw Cost per piece for Admin view
+            const sorted = [...products].sort((a, b) => calculateMargin(b) - calculateMargin(a));
+            
+            container.innerHTML = sorted.map((p, i) => {
+                const kgSold = (p.sold * 8) / p.pcsKg;
+                const remaining = p.limit - kgSold;
+                const statusClass = remaining <= 0 ? 'stock-critical' : (remaining <= 2 ? 'stock-low' : '');
                 const adminPieces = Math.floor(p.std / p.raw);
-                
-                return `
-                <tr class="hover:bg-gray-50 transition-colors">
-                    <td class="p-4 font-black uppercase text-gray-900">${p.name}</td>
-                    <td class="text-blue-600 font-black">${adminPieces} Pcs</td>
-                    <td>
-                        <input type="number" onchange="products[${i}].grams=this.value" value="${p.grams}" 
-                        class="w-16 border rounded p-1 ${p.name !== 'French Fries' ? 'opacity-20' : ''}"> g
-                    </td>
-                    <td>₹<input type="number" onchange="products[${i}].std=this.value; calculateEbitda()" value="${p.std}" class="w-16 border rounded p-1"></td>
-                    <td>₹<input type="number" step="0.01" onchange="products[${i}].raw=this.value" value="${p.raw}" class="w-16 border rounded p-1"></td>
-                    <td><input type="number" onchange="products[${i}].limit=this.value" value="${p.limit}" class="w-12 border rounded p-1">kg</td>
-                    <td><input type="checkbox" onchange="products[${i}].special=this.checked" ${p.special ? 'checked' : ''}></td>
+                const origIdx = products.findIndex(x => x.name === p.name);
+
+                return `<tr class="${statusClass}">
+                    <td class="p-5">#${i+1}</td>
+                    <td><input type="text" onchange="updateVal(${origIdx},'name',this.value)" value="${p.name}" class="bg-transparent border-b uppercase"></td>
+                    <td class="text-blue-600 font-black">${p.name === 'French Fries' ? adminPieces + ' Pcs' : '8 Pcs'}</td>
+                    <td><input type="number" onchange="updateVal(${origIdx},'grams',this.value)" value="${p.grams}" class="w-12 bg-transparent border-b ${p.name !== 'French Fries' ? 'opacity-20' : ''}">g</td>
+                    <td>₹<input type="number" step="0.01" onchange="updateVal(${origIdx},'raw',this.value)" value="${p.raw}" class="w-10 bg-transparent border-b"></td>
+                    <td>₹<input type="number" onchange="updateVal(${origIdx},'std',this.value)" value="${p.std}" class="w-12 bg-transparent border-b"></td>
+                    <td><input type="number" onchange="updateVal(${origIdx},'limit',this.value)" value="${p.limit}" class="w-8 bg-transparent border-b">kg</td>
+                    <td class="text-green-600">${calculateMargin(p).toFixed(0)}%</td>
+                    <td class="text-center"><button onclick="deleteItem(${origIdx})" class="text-red-400 hover:text-red-600">Delete</button></td>
                 </tr>`;
             }).join('');
             calculateEbitda();
         }
 
-        function calculateEbitda() {
-            // Logic: Margin = Std Rate - (Raw * 8 + overhead)
-            let total = products.reduce((acc, p) => acc + (p.std - (p.raw * 8 + 6.39)), 0);
-            document.getElementById('ebitdaDisplay').innerText = `₹${Math.round(total)}`;
+        function renderSales() {
+            const container = document.getElementById('salesInputs');
+            container.innerHTML = products.map((p, i) => `
+                <div class="flex flex-col gap-1 p-3 bg-gray-50 rounded-2xl">
+                    <label class="text-[8px] font-bold text-gray-400 uppercase">${p.name}</label>
+                    <input type="number" onchange="updateVal(${i},'sold',this.value)" value="${p.sold}" class="p-2 border rounded-xl font-black text-indigo-600">
+                </div>
+            `).join('');
         }
 
+        function updateVal(i, f, v) { 
+            products[i][f] = (f==='name' || f==='special') ? v : parseFloat(v) || 0; 
+            renderMgmt(); renderSales(); 
+        }
+
+        function calculateEbitda() {
+            let profit = products.reduce((acc, p) => acc + (p.sold * (p.std - (p.raw * 8 + 6.39))), 0);
+            document.getElementById('ebitdaDisplay').innerText = `₹${Math.round(profit).toLocaleString()}`;
+        }
+
+        function addNewProduct() {
+            products.push({ sort: 99, name: "New Item", raw: 0, std: 0, grams: 0, limit: 5, pcsKg: 40, sold: 0, special: false });
+            renderMgmt(); renderSales();
+        }
+
+        function deleteItem(i) { if(confirm("Delete item?")) { products.splice(i,1); renderMgmt(); renderSales(); } }
+
         async function pushToGithub() {
-            const token = document.getElementById('ghToken').value;
-            const repo = "Clean-Scripts/Easygo-Menu"; // CHANGE TO YOUR REPO
-            if(!token) return alert("Please paste your GitHub Token!");
+            const repo = document.getElementById('ghRepo').value;
+            if(!GH_TOKEN || GH_TOKEN === "YOUR_NEW_TOKEN_HERE") return alert("Please set your NEW GH_TOKEN first!");
 
             try {
-                // 1. Get SHA of existing menu.json
-                const res = await fetch(`https://api.github.com/repos/${repo}/contents/menu.json`, {
-                    headers: { 'Authorization': `token ${token}` }
+                // Fetch the current SHA to update
+                const getRes = await fetch(`https://api.github.com/repos/${repo}/contents/menu.json`, { 
+                    headers: { 'Authorization': `token ${GH_TOKEN}` } 
                 });
-                const data = await res.json();
+                const file = await getRes.json();
                 
-                // 2. Update the file
-                const update = await fetch(`https://api.github.com/repos/${repo}/contents/menu.json`, {
+                // Push all product data to the public repo
+                const putRes = await fetch(`https://api.github.com/repos/${repo}/contents/menu.json`, {
                     method: 'PUT',
-                    headers: { 'Authorization': `token ${token}`, 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        message: "Admin: Sync Menu",
-                        content: btoa(JSON.stringify(products, null, 2)),
-                        sha: data.sha
+                    headers: { 'Authorization': `token ${GH_TOKEN}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        message: "Admin: Enterprise Update", 
+                        content: btoa(JSON.stringify(products, null, 2)), 
+                        sha: file.sha 
                     })
                 });
 
-                if(update.ok) alert("Menu Sync Successful!");
-                else alert("Sync Failed. Check token permissions.");
-            } catch (e) { alert("Error connecting to GitHub."); }
+                if(putRes.ok) alert("SUCCESS! Public menu updated. Check the customer link.");
+                else alert("FAILED: Verify token permissions or repo name.");
+            } catch (e) { alert("Network Error. Ensure 'menu.json' exists in the public repo."); }
         }
 
-        window.onload = renderMgmt;
+        window.onload = () => { renderMgmt(); renderSales(); };
     </script>
 </body>
 </html>
