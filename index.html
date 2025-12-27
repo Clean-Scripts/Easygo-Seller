@@ -5,14 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/Clean-Scripts/EasyGo-Expense-Tracker/refs/heads/main/logo.png">
     <script src="https://cdn.tailwindcss.com"></script>
-    <title>Easy Go Admin | Enterprise Command</title>
+    <title>Easy Go | Sales Tracker</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
         body { font-family: 'Inter', sans-serif; background: #fff; margin: 0; }
         .admin-bg { background: linear-gradient(rgba(0,0,0,0.9), rgba(0,0,0,0.9)), url('https://raw.githubusercontent.com/Clean-Scripts/EasyGo-Expense-Tracker/refs/heads/main/Banner.png') no-repeat center center fixed; background-size: cover; }
         .glass-panel { background: rgba(255, 255, 255, 0.99); backdrop-filter: blur(25px); }
-        .stock-critical { background-color: #fee2e2 !important; border-left: 8px solid #ef4444 !important; }
-        .stock-low { background-color: #fff7ed !important; border-left: 8px solid #f97316 !important; }
     </style>
 </head>
 <body class="min-h-screen admin-bg p-4 md:p-8">
@@ -21,134 +19,171 @@
         <div class="flex flex-col md:flex-row justify-between items-center mb-10 pb-8 border-b border-gray-100">
             <div class="flex items-center gap-6">
                 <img src="https://raw.githubusercontent.com/Clean-Scripts/EasyGo-Expense-Tracker/refs/heads/main/logo.png" class="h-16 bg-white rounded-full p-1 shadow-md">
-                <h1 class="text-3xl font-black uppercase text-gray-900 tracking-tighter">Enterprise Command</h1>
+                <h1 class="text-3xl font-black uppercase text-gray-900 tracking-tighter">Sales Tracker</h1>
             </div>
             <div class="flex flex-wrap gap-3 mt-6 md:mt-0">
-                <button onclick="addNewProduct()" class="bg-gray-800 text-white px-6 py-3 rounded-xl font-bold uppercase text-[10px] shadow-lg hover:bg-gray-700 transition-all">+ Add More Item</button>
-                <button onclick="window.print()" class="bg-indigo-600 text-white px-6 py-3 rounded-xl font-bold uppercase text-[10px] shadow-lg hover:bg-indigo-500 transition-all">Print Report</button>
+                <input type="password" id="ghToken" placeholder="Paste Token to Sync" class="px-4 py-2 border rounded-xl text-xs w-40 shadow-inner">
+                <button onclick="saveAndSync()" class="bg-green-600 text-white px-6 py-3 rounded-xl font-bold uppercase text-[10px] shadow-lg hover:bg-green-500 transition-all">💾 Save & Sync All Devices</button>
             </div>
         </div>
 
-        <div class="bg-white rounded-3xl border border-gray-100 shadow-xl overflow-hidden mb-12">
-            <div class="bg-gray-900 p-5 flex justify-between items-center text-white">
-                <h3 class="font-bold text-xs uppercase tracking-widest">Profitability Rank & Stock Alert</h3>
-                <div class="flex gap-4 text-[10px] uppercase font-bold">
-                    <span class="text-orange-400">● < 2kg Stock</span>
-                    <span class="text-red-400">● Out of Stock</span>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div class="lg:col-span-1 bg-white p-8 rounded-[2.5rem] border border-gray-200 shadow-xl">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="font-black text-xs uppercase tracking-widest text-gray-400">Manual Sales Tracker</h3>
+                    <input type="date" id="recordDate" class="text-xs font-bold border-b border-indigo-200 outline-none">
                 </div>
-            </div>
-            <div class="overflow-x-auto">
-                <table class="w-full text-left">
-                    <thead class="bg-gray-50 text-[10px] font-black text-gray-500 uppercase border-b">
-                        <tr>
-                            <th class="p-5">Rank</th>
-                            <th>Item Name</th>
-                            <th>Admin (Pieces)</th>
-                            <th>Customer (Grams)</th>
-                            <th>Raw/pc</th>
-                            <th>Rate</th>
-                            <th>Stock</th>
-                            <th>Margin</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody id="mgmtTable" class="divide-y divide-gray-50 text-xs font-bold text-gray-600"></tbody>
-                </table>
-            </div>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div class="bg-indigo-950 rounded-[2.5rem] p-10 text-white shadow-2xl">
-                <p class="text-indigo-400 text-[10px] font-bold uppercase mb-1">EBITDA Impact (Gross Profit)</p>
-                <h2 id="ebitdaDisplay" class="text-6xl font-black mb-6">₹0</h2>
-                <div class="pt-6 border-t border-indigo-900 flex justify-between">
-                    <div>
-                        <p class="text-[9px] font-bold text-indigo-400 uppercase">GST Credit Available</p>
-                        <p class="text-xl font-black">₹3,076.84</p>
-                    </div>
-                    <div class="text-right">
-                        <p class="text-[9px] font-bold text-indigo-400 uppercase">Fixed Overhead</p>
-                        <p class="text-xl font-black text-red-400">₹6.39 / Plate</p>
-                    </div>
+                <div id="salesInputs" class="grid grid-cols-1 gap-2"></div>
+                
+                <div class="mt-8 pt-6 border-t border-gray-100">
+                    <p class="text-[10px] font-black text-indigo-400 uppercase mb-1">Current Session Profit</p>
+                    <h2 id="ebitdaDisplay" class="text-5xl font-black text-indigo-900">₹0</h2>
                 </div>
             </div>
 
-            <div class="bg-white p-10 rounded-[2.5rem] border border-gray-200 flex flex-col justify-center items-center">
-                <p class="text-[10px] font-black text-gray-400 uppercase mb-4">Manual Sales Tracker</p>
-                <div id="salesInputs" class="grid grid-cols-2 gap-4 w-full"></div>
+            <div class="lg:col-span-2 space-y-8">
+                <div class="bg-indigo-950 rounded-[2.5rem] p-8 text-white shadow-2xl">
+                    <h3 class="text-[10px] font-black text-indigo-400 uppercase mb-4 tracking-widest">Date-Wise History</h3>
+                    <div class="overflow-y-auto max-h-[400px] pr-2">
+                        <table class="w-full text-left text-xs">
+                            <thead class="text-indigo-300 uppercase font-black border-b border-indigo-900">
+                                <tr>
+                                    <th class="pb-3">Date</th>
+                                    <th class="pb-3 text-center">Items Sold</th>
+                                    <th class="pb-3 text-right">Net Profit</th>
+                                </tr>
+                            </thead>
+                            <tbody id="historyTable" class="divide-y divide-indigo-900/50 font-bold">
+                                <tr><td colspan="3" class="py-4 text-center text-indigo-500 italic">No cloud records found. Sync to load.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
+        // Updated Data based on Profitability Rank & Sorted Order
         let products = [
-            { sort: 1, name: "Steamed Veg Momos", raw: 2.82, std: 70, grams: 0, limit: 5, pcsKg: 39, sold: 0, special: false },
-            { sort: 2, name: "Fried Veg Momos", raw: 2.82, std: 80, grams: 0, limit: 5, pcsKg: 39, sold: 0, special: true },
-            { sort: 3, name: "Steamed Cheese Corn", raw: 3.89, std: 90, grams: 0, limit: 5, pcsKg: 36, sold: 0, special: false },
-            { sort: 4, name: "Fried Cheese Corn", raw: 3.89, std: 100, grams: 0, limit: 5, pcsKg: 36, sold: 0, special: false },
-            { sort: 5, name: "Mini Samosas", raw: 7.27, std: 140, grams: 0, limit: 5, pcsKg: 33, sold: 0, special: false },
-            { sort: 6, name: "French Fries", raw: 0.83, std: 80, grams: 150, limit: 10, pcsKg: 120, sold: 0, special: true }
+            { name: "Steamed Veg Momos", raw: 2.82, std: 70, pcsKg: 39, sold: 0, cat: "MOMOS" },
+            { name: "Fried Veg Momos", raw: 2.82, std: 80, pcsKg: 39, sold: 0, cat: "MOMOS" },
+            { name: "Steamed Cheese Corn", raw: 3.89, std: 90, pcsKg: 36, sold: 0, cat: "MOMOS" },
+            { name: "Fried Cheese Corn", raw: 3.89, std: 100, pcsKg: 36, sold: 0, cat: "MOMOS" },
+            { name: "Steamed Paneer Momos", raw: 4.00, std: 120, pcsKg: 39, sold: 0, cat: "MOMOS" },
+            { name: "Fried Paneer Momos", raw: 4.00, std: 140, pcsKg: 39, sold: 0, cat: "MOMOS" },
+            { name: "French Fries", raw: 0.83, std: 80, pcsKg: 120, sold: 0, cat: "SIDES" },
+            { name: "Mini Samosas", raw: 7.27, std: 140, pcsKg: 33, sold: 0, cat: "SIDES" }
         ];
 
-        function calculateMargin(p) {
-            const cost = (p.raw * 8) + 6.39; // Overhead per plate
-            return ((p.std - cost) / p.std) * 100;
-        }
+        let salesHistory = []; 
+        const REPO = "Clean-Scripts/Easygo-Seller"; 
 
-        function renderMgmt() {
-            const container = document.getElementById('mgmtTable');
-            const sorted = [...products].sort((a, b) => calculateMargin(b) - calculateMargin(a));
-            
-            container.innerHTML = sorted.map((p, i) => {
-                const kgSold = (p.sold * 8) / p.pcsKg;
-                const remaining = p.limit - kgSold;
-                const statusClass = remaining <= 0 ? 'stock-critical' : (remaining <= 2 ? 'stock-low' : '');
-                const adminPieces = Math.floor(p.std / p.raw);
-                const origIdx = products.findIndex(x => x.name === p.name);
-
-                return `<tr class="${statusClass}">
-                    <td class="p-5">#${i+1}</td>
-                    <td><input type="text" onchange="updateVal(${origIdx},'name',this.value)" value="${p.name}" class="bg-transparent border-b uppercase font-bold w-full"></td>
-                    <td class="text-blue-600 font-black">${p.name === 'French Fries' ? adminPieces + ' Pcs' : '8 Pcs'}</td>
-                    <td><input type="number" onchange="updateVal(${origIdx},'grams',this.value)" value="${p.grams}" class="w-12 bg-transparent border-b ${p.name !== 'French Fries' ? 'opacity-20' : ''}">g</td>
-                    <td>₹<input type="number" step="0.01" onchange="updateVal(${origIdx},'raw',this.value)" value="${p.raw}" class="w-10 bg-transparent border-b"></td>
-                    <td>₹<input type="number" onchange="updateVal(${origIdx},'std',this.value)" value="${p.std}" class="w-12 bg-transparent border-b"></td>
-                    <td><input type="number" onchange="updateVal(${origIdx},'limit',this.value)" value="${p.limit}" class="w-8 bg-transparent border-b">kg</td>
-                    <td class="text-green-600 font-black">${calculateMargin(p).toFixed(0)}%</td>
-                    <td class="text-center"><button onclick="deleteItem(${origIdx})" class="text-red-400 hover:text-red-600 font-bold">Delete</button></td>
-                </tr>`;
-            }).join('');
-            calculateEbitda();
+        function init() {
+            document.getElementById('recordDate').valueAsDate = new Date();
+            renderSales();
         }
 
         function renderSales() {
             const container = document.getElementById('salesInputs');
-            container.innerHTML = products.map((p, i) => `
-                <div class="flex flex-col gap-1 p-3 bg-gray-50 rounded-2xl border border-gray-100">
-                    <label class="text-[8px] font-bold text-gray-400 uppercase">${p.name}</label>
-                    <input type="number" onchange="updateVal(${i},'sold',this.value)" value="${p.sold}" class="p-2 border rounded-xl font-black text-indigo-600 focus:ring-2 focus:ring-indigo-400 outline-none">
-                </div>
-            `).join('');
+            let currentCat = "";
+            let html = "";
+
+            products.forEach((p, i) => {
+                if (p.cat !== currentCat && p.cat === "MOMOS") {
+                    html += `<p class="text-[9px] font-black text-indigo-300 mt-2 border-b border-indigo-50">MOMOS CATEGORY</p>`;
+                    currentCat = p.cat;
+                } else if (p.cat !== currentCat) {
+                    html += `<p class="text-[9px] font-black text-indigo-300 mt-4 border-b border-indigo-50">SIDES</p>`;
+                    currentCat = p.cat;
+                }
+
+                html += `
+                <div class="flex justify-between items-center p-2 bg-gray-50 rounded-xl border border-gray-100">
+                    <label class="text-[9px] font-black text-gray-500 uppercase">${p.name}</label>
+                    <input type="number" onchange="updateSold(${i}, this.value)" value="${p.sold}" class="w-16 p-1 border rounded-lg font-black text-indigo-600 text-center outline-none">
+                </div>`;
+            });
+            container.innerHTML = html;
+            calculateEbitda();
         }
 
-        function updateVal(i, f, v) { 
-            products[i][f] = (f==='name' || f==='special') ? v : parseFloat(v) || 0; 
-            renderMgmt(); renderSales(); 
+        function updateSold(i, v) {
+            products[i].sold = parseFloat(v) || 0;
+            calculateEbitda();
         }
 
         function calculateEbitda() {
+            // Profit Calculation: $Profit = \sum (Sold \times (Rate - (Raw \times 8 + 6.39)))$
             let profit = products.reduce((acc, p) => acc + (p.sold * (p.std - (p.raw * 8 + 6.39))), 0);
             document.getElementById('ebitdaDisplay').innerText = `₹${Math.round(profit).toLocaleString()}`;
+            return Math.round(profit);
         }
 
-        function addNewProduct() {
-            products.push({ sort: 99, name: "New Item", raw: 0, std: 0, grams: 0, limit: 5, pcsKg: 40, sold: 0, special: false });
-            renderMgmt(); renderSales();
+        async function saveAndSync() {
+            const token = document.getElementById('ghToken').value;
+            const date = document.getElementById('recordDate').value;
+            const currentProfit = calculateEbitda();
+            
+            if (!token) return alert("Please paste your GitHub Token to sync!");
+
+            const entry = {
+                date: date,
+                totalProfit: currentProfit,
+                items: products.map(p => ({ name: p.name, sold: p.sold }))
+            };
+
+            try {
+                const res = await fetch(`https://api.github.com/repos/${REPO}/contents/sales_history.json`, {
+                    headers: { 'Authorization': `token ${token}` }
+                });
+                
+                let sha = "";
+                if (res.ok) {
+                    const cloudData = await res.json();
+                    sha = cloudData.sha;
+                    salesHistory = JSON.parse(atob(cloudData.content));
+                }
+
+                const existingIndex = salesHistory.findIndex(h => h.date === date);
+                if (existingIndex > -1) salesHistory[existingIndex] = entry;
+                else salesHistory.push(entry);
+
+                salesHistory.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+                const update = await fetch(`https://api.github.com/repos/${REPO}/contents/sales_history.json`, {
+                    method: 'PUT',
+                    headers: { 'Authorization': `token ${token}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        message: `Sales Update: ${date}`,
+                        content: btoa(JSON.stringify(salesHistory, null, 2)),
+                        sha: sha
+                    })
+                });
+
+                if (update.ok) {
+                    alert("✅ Cloud Sync Complete!");
+                    renderHistory();
+                } else {
+                    alert("❌ Sync Failed. Check token.");
+                }
+            } catch (e) {
+                alert("❌ Error connecting to GitHub.");
+            }
         }
 
-        function deleteItem(i) { if(confirm("Delete this item permanently?")) { products.splice(i,1); renderMgmt(); renderSales(); } }
+        function renderHistory() {
+            const container = document.getElementById('historyTable');
+            container.innerHTML = salesHistory.map(h => `
+                <tr class="border-b border-indigo-900/20">
+                    <td class="py-4 text-indigo-200">${h.date}</td>
+                    <td class="py-4 text-center">${h.items.reduce((acc, i) => acc + i.sold, 0)} Plates</td>
+                    <td class="py-4 text-right text-green-400">₹${h.totalProfit}</td>
+                </tr>
+            `).join('');
+        }
 
-        window.onload = () => { renderMgmt(); renderSales(); };
+        window.onload = init;
     </script>
 </body>
 </html>
