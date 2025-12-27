@@ -5,150 +5,246 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/Clean-Scripts/EasyGo-Expense-Tracker/refs/heads/main/logo.png">
     <script src="https://cdn.tailwindcss.com"></script>
-    <title>Easy Go Admin | Enterprise Command</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <title>Easy Go Admin | Cloud Command</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
-        body { font-family: 'Inter', sans-serif; background: #fff; margin: 0; }
+        body { font-family: 'Inter', sans-serif; background: #f8fafc; margin: 0; }
         .admin-bg { background: linear-gradient(rgba(0,0,0,0.9), rgba(0,0,0,0.9)), url('https://raw.githubusercontent.com/Clean-Scripts/EasyGo-Expense-Tracker/refs/heads/main/Banner.png') no-repeat center center fixed; background-size: cover; }
-        .glass-panel { background: rgba(255, 255, 255, 0.99); backdrop-filter: blur(25px); }
-        .stock-critical { background-color: #fee2e2 !important; border-left: 8px solid #ef4444 !important; }
-        .stock-low { background-color: #fff7ed !important; border-left: 8px solid #f97316 !important; }
+        .glass-panel { background: rgba(255, 255, 255, 0.98); backdrop-filter: blur(25px); }
+        input[type="number"]::-webkit-inner-spin-button { display: none; }
+        @media print { .no-print { display: none !important; } }
     </style>
 </head>
 <body class="min-h-screen admin-bg p-4 md:p-8">
-    <div class="max-w-7xl mx-auto glass-panel rounded-[3.5rem] shadow-2xl p-6 md:p-12 border border-white/20">
+    <div class="max-w-7xl mx-auto glass-panel rounded-[3rem] shadow-2xl p-6 md:p-12 border border-white/20">
         
         <div class="flex flex-col md:flex-row justify-between items-center mb-10 pb-8 border-b border-gray-100">
             <div class="flex items-center gap-6">
                 <img src="https://raw.githubusercontent.com/Clean-Scripts/EasyGo-Expense-Tracker/refs/heads/main/logo.png" class="h-16 bg-white rounded-full p-1 shadow-md">
                 <h1 class="text-3xl font-black uppercase text-gray-900 tracking-tighter">Enterprise Command</h1>
             </div>
-            <div class="flex flex-wrap gap-3 mt-6 md:mt-0">
-                <button onclick="addNewProduct()" class="bg-gray-800 text-white px-6 py-3 rounded-xl font-bold uppercase text-[10px] shadow-lg hover:bg-gray-700 transition-all">+ Add More Item</button>
-                <button onclick="window.print()" class="bg-indigo-600 text-white px-6 py-3 rounded-xl font-bold uppercase text-[10px] shadow-lg hover:bg-indigo-500 transition-all">Print Report</button>
+            <div class="flex flex-wrap gap-3 mt-6 md:mt-0 no-print">
+                <input type="password" id="ghToken" placeholder="GitHub Token" class="px-4 py-2 border rounded-xl text-xs w-32 shadow-inner outline-none focus:ring-2 focus:ring-green-400">
+                <button onclick="saveAndSync()" class="bg-green-600 text-white px-6 py-3 rounded-xl font-bold uppercase text-[10px] shadow-lg hover:scale-105 transition-all">💾 Save & Sync Cloud</button>
+                <button onclick="window.print()" class="bg-gray-800 text-white px-6 py-3 rounded-xl font-bold uppercase text-[10px]">Print Report</button>
             </div>
         </div>
 
-        <div class="bg-white rounded-3xl border border-gray-100 shadow-xl overflow-hidden mb-12">
-            <div class="bg-gray-900 p-5 flex justify-between items-center text-white">
-                <h3 class="font-bold text-xs uppercase tracking-widest">Profitability Rank & Stock Alert</h3>
-                <div class="flex gap-4 text-[10px] uppercase font-bold">
-                    <span class="text-orange-400">● < 2kg Stock</span>
-                    <span class="text-red-400">● Out of Stock</span>
-                </div>
-            </div>
-            <div class="overflow-x-auto">
-                <table class="w-full text-left">
-                    <thead class="bg-gray-50 text-[10px] font-black text-gray-500 uppercase border-b">
-                        <tr>
-                            <th class="p-5">Rank</th>
-                            <th>Item Name</th>
-                            <th>Admin (Pieces)</th>
-                            <th>Customer (Grams)</th>
-                            <th>Raw/pc</th>
-                            <th>Rate</th>
-                            <th>Stock</th>
-                            <th>Margin</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody id="mgmtTable" class="divide-y divide-gray-50 text-xs font-bold text-gray-600"></tbody>
-                </table>
-            </div>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div class="bg-indigo-950 rounded-[2.5rem] p-10 text-white shadow-2xl">
-                <p class="text-indigo-400 text-[10px] font-bold uppercase mb-1">EBITDA Impact (Gross Profit)</p>
-                <h2 id="ebitdaDisplay" class="text-6xl font-black mb-6">₹0</h2>
-                <div class="pt-6 border-t border-indigo-900 flex justify-between">
-                    <div>
-                        <p class="text-[9px] font-bold text-indigo-400 uppercase">GST Credit Available</p>
-                        <p class="text-xl font-black">₹3,076.84</p>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            
+            <div class="space-y-8">
+                <div class="bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-xl">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="font-black text-xs uppercase tracking-widest text-gray-400">Sales Tracker</h3>
+                        <input type="date" id="recordDate" class="text-xs font-bold border-b border-indigo-200 outline-none">
                     </div>
-                    <div class="text-right">
-                        <p class="text-[9px] font-bold text-indigo-400 uppercase">Fixed Overhead</p>
-                        <p class="text-xl font-black text-red-400">₹6.39 / Plate</p>
+                    <div id="salesInputs" class="space-y-3"></div>
+                </div>
+
+                <div class="bg-red-50 p-8 rounded-[2.5rem] border border-red-100 shadow-xl">
+                    <h3 class="font-black text-xs uppercase tracking-widest text-red-500 mb-6">Business Overheads</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="text-[9px] font-black text-gray-400 uppercase">Haier Freezer (Daily Prorated)</label>
+                            <input type="number" id="expFreezer" onchange="calculateFinancials()" value="60" class="w-full p-2 rounded-lg border-b bg-transparent font-bold">
+                        </div>
+                        <div>
+                            <label class="text-[9px] font-black text-gray-400 uppercase">Electricity & Gas (Daily)</label>
+                            <input type="number" id="expUtilities" onchange="calculateFinancials()" value="150" class="w-full p-2 rounded-lg border-b bg-transparent font-bold">
+                        </div>
+                        <div>
+                            <label class="text-[9px] font-black text-gray-400 uppercase">Distributor & Travel Fees</label>
+                            <input type="number" id="expLogistics" onchange="calculateFinancials()" value="100" class="w-full p-2 rounded-lg border-b bg-transparent font-bold">
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <div class="bg-white p-10 rounded-[2.5rem] border border-gray-200 flex flex-col justify-center items-center">
-                <p class="text-[10px] font-black text-gray-400 uppercase mb-4">Manual Sales Tracker</p>
-                <div id="salesInputs" class="grid grid-cols-2 gap-4 w-full"></div>
+            <div class="lg:col-span-2 space-y-8">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="bg-indigo-950 rounded-[2.5rem] p-8 text-white shadow-2xl">
+                        <p class="text-indigo-400 text-[10px] font-bold uppercase mb-1">EBITDA Impact (Net Daily)</p>
+                        <h2 id="ebitdaDisplay" class="text-5xl font-black">₹0</h2>
+                        <p class="text-[9px] text-indigo-300 mt-2 italic">After Fixed Packaging Overhead: ₹6.39/Plate</p>
+                    </div>
+                    <div class="bg-white rounded-[2.5rem] p-6 border border-gray-100 shadow-xl flex items-center justify-center">
+                        <canvas id="profitChart" class="max-h-32"></canvas>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-3xl border border-gray-100 shadow-xl overflow-hidden">
+                    <div class="bg-gray-900 p-4 text-white font-bold text-[10px] uppercase tracking-widest">Enterprise Inventory</div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs">
+                            <thead class="bg-gray-50 font-black text-gray-500 uppercase border-b">
+                                <tr>
+                                    <th class="p-4">Rank</th>
+                                    <th>Item</th>
+                                    <th>Admin Pcs</th>
+                                    <th>Cust. (g)</th>
+                                    <th>Raw/pc</th>
+                                    <th>Rate</th>
+                                    <th>Margin</th>
+                                </tr>
+                            </thead>
+                            <tbody id="mgmtTable" class="divide-y divide-gray-50 font-bold"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-green-50 p-6 rounded-[2rem] border border-green-100">
+                        <h4 class="text-[10px] font-black text-green-600 uppercase mb-4 tracking-widest">Tax Estimator (Sec 44AD)</h4>
+                        <div class="space-y-2 text-[11px] font-bold">
+                            <div class="flex justify-between"><span>Proj. Annual Turnover:</span><span id="taxTurnover">₹0</span></div>
+                            <div class="flex justify-between text-indigo-600 border-t pt-2"><span>Presumptive Profit:</span><span id="taxProfit">₹0</span></div>
+                            <p class="text-[8px] text-gray-400 mt-2 italic">*Estimates for FY 2025-26</p>
+                        </div>
+                    </div>
+                    <div class="bg-indigo-50 p-6 rounded-[2rem] border border-indigo-100">
+                        <h4 class="text-[10px] font-black text-indigo-600 uppercase mb-4 tracking-widest">ITR-4 Helper</h4>
+                        <p class="text-[10px] font-bold text-gray-600 mb-2 underline cursor-pointer" onclick="alert('Business Code: 09027\nFixed Asset: Haier Freezer ₹19,840\nPresumptive Rate: 8% (Cash) / 6% (Digital)')">📝 View ITR-4 Filling Keys</p>
+                        <button onclick="calculateTax()" class="w-full py-2 bg-indigo-600 text-white rounded-xl text-[9px] font-black uppercase tracking-wider shadow-md active:scale-95">Generate Tax Projection</button>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-3xl border border-gray-100 shadow-xl overflow-hidden">
+                    <div class="bg-indigo-600 p-4 text-white font-bold text-[10px] uppercase tracking-widest flex justify-between">
+                        <span>Multi-Device History Log</span>
+                        <span class="opacity-70 italic text-[8px]">Select 'Edit' and Sync to Update a Date</span>
+                    </div>
+                    <div class="max-h-48 overflow-y-auto">
+                        <table class="w-full text-left text-xs">
+                            <thead class="bg-gray-50 font-black text-gray-400 uppercase border-b sticky top-0">
+                                <tr>
+                                    <th class="p-4">Date</th>
+                                    <th>Daily EBITDA</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="historyTable" class="divide-y divide-gray-50 font-medium"></tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
+        const REPO = "Clean-Scripts/Easygo-Seller"; 
+        let salesHistory = [];
+        let chartInstance = null;
+
         let products = [
-            { sort: 1, name: "Steamed Veg Momos", raw: 2.82, std: 70, grams: 0, limit: 5, pcsKg: 39, sold: 0, special: false },
-            { sort: 2, name: "Fried Veg Momos", raw: 2.82, std: 80, grams: 0, limit: 5, pcsKg: 39, sold: 0, special: true },
-            { sort: 3, name: "Steamed Cheese Corn", raw: 3.89, std: 90, grams: 0, limit: 5, pcsKg: 36, sold: 0, special: false },
-            { sort: 4, name: "Fried Cheese Corn", raw: 3.89, std: 100, grams: 0, limit: 5, pcsKg: 36, sold: 0, special: false },
-            { sort: 5, name: "Mini Samosas", raw: 7.27, std: 140, grams: 0, limit: 5, pcsKg: 33, sold: 0, special: false },
-            { sort: 6, name: "French Fries", raw: 0.83, std: 80, grams: 150, limit: 10, pcsKg: 120, sold: 0, special: true }
+            { name: "Steamed Veg Momos", raw: 2.82, std: 70, grams: 0, sold: 0 },
+            { name: "Fried Veg Momos", raw: 2.82, std: 80, grams: 0, sold: 0 },
+            { name: "Steamed Cheese Corn", raw: 3.89, std: 90, grams: 0, sold: 0 },
+            { name: "Fried Cheese Corn", raw: 3.89, std: 100, grams: 0, sold: 0 },
+            { name: "Mini Samosas", raw: 7.27, std: 140, grams: 0, sold: 0 },
+            { name: "French Fries", raw: 0.83, std: 80, grams: 150, sold: 0 }
         ];
 
-        function calculateMargin(p) {
-            const cost = (p.raw * 8) + 6.39; // Overhead per plate
-            return ((p.std - cost) / p.std) * 100;
-        }
-
-        function renderMgmt() {
-            const container = document.getElementById('mgmtTable');
-            const sorted = [...products].sort((a, b) => calculateMargin(b) - calculateMargin(a));
+        function calculateFinancials() {
+            let gross = products.reduce((acc, p) => acc + (p.sold * (p.std - (p.raw * 8 + 6.39))), 0);
+            const overhead = parseFloat(document.getElementById('expFreezer').value) + 
+                             parseFloat(document.getElementById('expUtilities').value) + 
+                             parseFloat(document.getElementById('expLogistics').value);
             
-            container.innerHTML = sorted.map((p, i) => {
-                const kgSold = (p.sold * 8) / p.pcsKg;
-                const remaining = p.limit - kgSold;
-                const statusClass = remaining <= 0 ? 'stock-critical' : (remaining <= 2 ? 'stock-low' : '');
-                const adminPieces = Math.floor(p.std / p.raw);
-                const origIdx = products.findIndex(x => x.name === p.name);
-
-                return `<tr class="${statusClass}">
-                    <td class="p-5">#${i+1}</td>
-                    <td><input type="text" onchange="updateVal(${origIdx},'name',this.value)" value="${p.name}" class="bg-transparent border-b uppercase font-bold w-full"></td>
-                    <td class="text-blue-600 font-black">${p.name === 'French Fries' ? adminPieces + ' Pcs' : '8 Pcs'}</td>
-                    <td><input type="number" onchange="updateVal(${origIdx},'grams',this.value)" value="${p.grams}" class="w-12 bg-transparent border-b ${p.name !== 'French Fries' ? 'opacity-20' : ''}">g</td>
-                    <td>₹<input type="number" step="0.01" onchange="updateVal(${origIdx},'raw',this.value)" value="${p.raw}" class="w-10 bg-transparent border-b"></td>
-                    <td>₹<input type="number" onchange="updateVal(${origIdx},'std',this.value)" value="${p.std}" class="w-12 bg-transparent border-b"></td>
-                    <td><input type="number" onchange="updateVal(${origIdx},'limit',this.value)" value="${p.limit}" class="w-8 bg-transparent border-b">kg</td>
-                    <td class="text-green-600 font-black">${calculateMargin(p).toFixed(0)}%</td>
-                    <td class="text-center"><button onclick="deleteItem(${origIdx})" class="text-red-400 hover:text-red-600 font-bold">Delete</button></td>
-                </tr>`;
-            }).join('');
-            calculateEbitda();
+            const net = gross - overhead;
+            document.getElementById('ebitdaDisplay').innerText = `₹${Math.round(net).toLocaleString()}`;
+            updateProfitChart(gross, overhead);
+            return net;
         }
 
-        function renderSales() {
-            const container = document.getElementById('salesInputs');
-            container.innerHTML = products.map((p, i) => `
-                <div class="flex flex-col gap-1 p-3 bg-gray-50 rounded-2xl border border-gray-100">
-                    <label class="text-[8px] font-bold text-gray-400 uppercase">${p.name}</label>
-                    <input type="number" onchange="updateVal(${i},'sold',this.value)" value="${p.sold}" class="p-2 border rounded-xl font-black text-indigo-600 focus:ring-2 focus:ring-indigo-400 outline-none">
-                </div>
-            `).join('');
+        function updateProfitChart(p, e) {
+            const ctx = document.getElementById('profitChart').getContext('2d');
+            if(chartInstance) chartInstance.destroy();
+            chartInstance = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Profit', 'Expenses'],
+                    datasets: [{ data: [p, e], backgroundColor: ['#4f46e5', '#ef4444'], borderWidth: 0 }]
+                },
+                options: { cutout: '80%', plugins: { legend: { display: false } } }
+            });
         }
 
-        function updateVal(i, f, v) { 
-            products[i][f] = (f==='name' || f==='special') ? v : parseFloat(v) || 0; 
-            renderMgmt(); renderSales(); 
+        function renderInterface() {
+            const mgmt = document.getElementById('mgmtTable');
+            mgmt.innerHTML = products.map((p, i) => `
+                <tr>
+                    <td class="p-4 text-gray-400">#${i+1}</td>
+                    <td>${p.name}</td>
+                    <td class="text-indigo-600">${p.name.includes("Fries") ? Math.floor(p.std/p.raw) : 8} Pcs</td>
+                    <td>${p.name.includes("Fries") ? `<input type="number" onchange="products[${i}].grams=this.value" value="${p.grams}" class="w-10 border-b">g` : '-'}</td>
+                    <td>₹${p.raw}</td>
+                    <td>₹<input type="number" onchange="products[${i}].std=parseFloat(this.value); renderInterface()" value="${p.std}" class="w-10"></td>
+                    <td class="text-green-600">${(((p.std - (p.raw * 8 + 6.39)) / p.std) * 100).toFixed(0)}%</td>
+                </tr>`).join('');
+
+            const inputs = document.getElementById('salesInputs');
+            inputs.innerHTML = products.map((p, i) => `
+                <div class="flex justify-between items-center bg-gray-50 p-3 rounded-2xl border">
+                    <span class="text-[9px] font-black uppercase text-gray-500">${p.name}</span>
+                    <input type="number" value="${p.sold}" onchange="products[${i}].sold=parseFloat(this.value); calculateFinancials()" class="w-16 border rounded-lg text-center font-bold text-indigo-600">
+                </div>`).join('');
+            calculateFinancials();
         }
 
-        function calculateEbitda() {
-            let profit = products.reduce((acc, p) => acc + (p.sold * (p.std - (p.raw * 8 + 6.39))), 0);
-            document.getElementById('ebitdaDisplay').innerText = `₹${Math.round(profit).toLocaleString()}`;
+        function calculateTax() {
+            const totalStoredDays = salesHistory.length || 1;
+            const currentTotalSales = salesHistory.reduce((acc, h) => acc + h.profit, 0);
+            const projectedAnnual = (currentTotalSales / totalStoredDays) * 300; // 300 business days
+            
+            document.getElementById('taxTurnover').innerText = `₹${Math.round(projectedAnnual).toLocaleString()}`;
+            document.getElementById('taxProfit').innerText = `₹${Math.round(projectedAnnual * 0.08).toLocaleString()}`;
         }
 
-        function addNewProduct() {
-            products.push({ sort: 99, name: "New Item", raw: 0, std: 0, grams: 0, limit: 5, pcsKg: 40, sold: 0, special: false });
-            renderMgmt(); renderSales();
+        async function saveAndSync() {
+            const token = document.getElementById('ghToken').value;
+            if(!token) return alert("Error: GitHub Token required for multi-device sync.");
+            
+            const date = document.getElementById('recordDate').value;
+            const dailyNet = calculateFinancials();
+            const record = { date, profit: dailyNet, itemsSold: JSON.parse(JSON.stringify(products)) };
+
+            const idx = salesHistory.findIndex(h => h.date === date);
+            if(idx > -1) salesHistory[idx] = record;
+            else salesHistory.push(record);
+
+            try {
+                const res = await fetch(`https://api.github.com/repos/${REPO}/contents/easygo_data.json`, { headers: { 'Authorization': `token ${token}` } });
+                const file = await res.json();
+                
+                const sync = await fetch(`https://api.github.com/repos/${REPO}/contents/easygo_data.json`, {
+                    method: 'PUT',
+                    headers: { 'Authorization': `token ${token}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: `Daily Log: ${date}`, content: btoa(JSON.stringify(salesHistory, null, 2)), sha: file.sha })
+                });
+
+                if(sync.ok) { alert("✅ CLOUD SYNC COMPLETE! All devices updated."); renderHistory(); }
+            } catch (e) { alert("❌ Sync Failed. Create easygo_data.json file in repo first."); }
         }
 
-        function deleteItem(i) { if(confirm("Delete this item permanently?")) { products.splice(i,1); renderMgmt(); renderSales(); } }
+        function renderHistory() {
+            const table = document.getElementById('historyTable');
+            table.innerHTML = salesHistory.sort((a,b) => new Date(b.date) - new Date(a.date)).map((h, i) => `
+                <tr>
+                    <td class="p-4 font-black text-gray-500">${h.date}</td>
+                    <td class="text-green-600 font-bold">₹${Math.round(h.profit)}</td>
+                    <td><button onclick="editDay(${i})" class="text-indigo-600 font-black hover:underline">Edit</button></td>
+                </tr>`).join('');
+        }
 
-        window.onload = () => { renderMgmt(); renderSales(); };
+        function editDay(i) {
+            const record = salesHistory[i];
+            document.getElementById('recordDate').value = record.date;
+            products = JSON.parse(JSON.stringify(record.itemsSold));
+            renderInterface();
+        }
+
+        window.onload = () => { document.getElementById('recordDate').valueAsDate = new Date(); renderInterface(); };
     </script>
 </body>
 </html>
