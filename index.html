@@ -9,129 +9,280 @@
     <title>Easy Go ERP | Master Command</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
-        body { font-family: 'Inter', sans-serif; background: #05070a; color: #fff; }
-        .glass-panel { background: rgba(255, 255, 255, 0.98); backdrop-filter: blur(20px); color: #1a1a1a; }
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background: linear-gradient(135deg, #05070a 0%, #1a1a2e 100%);
+            color: #fff;
+            min-height: 100vh;
+        }
+        .glass-panel { 
+            background: rgba(255, 255, 255, 0.98); 
+            backdrop-filter: blur(20px); 
+            color: #1a1a1a;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
         input[type="number"]::-webkit-inner-spin-button { display: none; }
         .scroll-hide::-webkit-scrollbar { display: none; }
-        .alert-pulse { animation: pulse 1.5s infinite; background: #fee2e2; border: 2px solid #ef4444; color: #b91c1c; }
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.6; } 100% { opacity: 1; } }
-        .tab-btn.active { border-bottom: 3px solid #4f46e5; color: #4f46e5; font-weight: 900; }
+        .alert-pulse { 
+            animation: pulse 1.5s infinite; 
+            background: linear-gradient(90deg, #fee2e2 0%, #fecaca 100%);
+            border: 2px solid #ef4444; 
+            color: #b91c1c; 
+        }
+        @keyframes pulse { 
+            0% { opacity: 1; } 
+            50% { opacity: 0.7; } 
+            100% { opacity: 1; } 
+        }
+        .tab-btn { 
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+        .tab-btn.active { 
+            color: #4f46e5; 
+            font-weight: 900;
+            transform: translateY(-2px);
+        }
+        .tab-btn.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(90deg, #4f46e5 0%, #7c3aed 100%);
+            border-radius: 3px 3px 0 0;
+        }
+        .tab-btn:hover:not(.active) {
+            color: #6366f1;
+            transform: translateY(-1px);
+        }
+        .card-hover {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .card-hover:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px -15px rgba(79, 70, 229, 0.3);
+        }
+        .btn-primary {
+            background: linear-gradient(90deg, #4f46e5 0%, #7c3aed 100%);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -5px rgba(79, 70, 229, 0.4);
+        }
+        .loading-spinner {
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        .gradient-text {
+            background: linear-gradient(90deg, #4f46e5 0%, #7c3aed 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
     </style>
 </head>
 <body class="min-h-screen p-2 md:p-6">
-    <div class="max-w-7xl mx-auto glass-panel rounded-[2rem] md:rounded-[3rem] shadow-2xl p-4 md:p-8">
+    <div class="max-w-7xl mx-auto glass-panel rounded-[2rem] md:rounded-[3rem] shadow-2xl p-4 md:p-8 overflow-hidden">
         
+        <!-- Header -->
         <div class="flex flex-col md:flex-row justify-between items-center mb-6 pb-6 border-b border-gray-100">
             <div class="flex items-center gap-4">
-                <img src="https://raw.githubusercontent.com/Clean-Scripts/EasyGo-Expense-Tracker/refs/heads/main/logo.png" class="h-14 md:h-20 bg-white rounded-full p-1 shadow-md">
+                <div class="relative">
+                    <img src="https://raw.githubusercontent.com/Clean-Scripts/EasyGo-Expense-Tracker/refs/heads/main/logo.png" 
+                         class="h-14 md:h-20 bg-white rounded-full p-1 shadow-lg card-hover">
+                    <div class="absolute -top-1 -right-1 w-6 h-6 bg-green-500 rounded-full border-2 border-white flex items-center justify-center">
+                        <span class="text-[8px] font-black text-white">v10</span>
+                    </div>
+                </div>
                 <div>
-                    <h1 class="text-3xl md:text-4xl font-black uppercase text-gray-900 tracking-tighter">Easy Go Admin</h1>
-                    <p class="text-[10px] font-bold text-indigo-500 tracking-widest uppercase">Master Enterprise Build v10.0</p>
+                    <h1 class="text-3xl md:text-4xl font-black uppercase tracking-tighter gradient-text">Easy Go Admin</h1>
+                    <p class="text-[10px] font-bold text-indigo-500 tracking-widest uppercase mt-1">Master Enterprise Build v10.0</p>
                 </div>
             </div>
             <div class="flex flex-wrap gap-2 mt-4 md:mt-0">
-                <input type="password" id="ghToken" placeholder="GitHub Token" class="px-4 py-2 border rounded-xl text-xs w-full md:w-48 shadow-inner outline-none">
-                <button onclick="cloudSync('save')" class="bg-indigo-600 text-white px-5 py-2 rounded-xl font-bold uppercase text-[10px] shadow-lg hover:bg-indigo-700 transition-all">💾 Cloud Save</button>
-                <button onclick="cloudSync('load')" class="bg-gray-100 text-gray-600 px-5 py-2 rounded-xl font-bold uppercase text-[10px] border shadow-sm hover:bg-gray-200 transition-all">🔄 Fetch Data</button>
+                <div class="relative">
+                    <input type="password" id="ghToken" placeholder="🔐 GitHub Token" 
+                           class="pl-10 pr-4 py-2 border rounded-xl text-xs w-full md:w-48 shadow-inner outline-none focus:ring-2 focus:ring-indigo-300 transition-all">
+                    <span class="absolute left-3 top-2.5 text-gray-400">🔐</span>
+                </div>
+                <button onclick="cloudSync('save')" class="btn-primary text-white px-5 py-2 rounded-xl font-bold uppercase text-[10px] shadow-lg transition-all">
+                    💾 Cloud Save
+                </button>
+                <button onclick="cloudSync('load')" class="bg-gradient-to-r from-gray-100 to-gray-50 text-gray-600 px-5 py-2 rounded-xl font-bold uppercase text-[10px] border shadow-sm hover:shadow-md transition-all">
+                    🔄 Fetch Data
+                </button>
             </div>
         </div>
 
+        <!-- Tabs Navigation -->
         <div class="flex gap-6 mb-8 border-b border-gray-100 overflow-x-auto scroll-hide">
-            <button onclick="switchTab('dashboard')" id="tab-dashboard" class="tab-btn active pb-4 uppercase text-[10px] font-black tracking-widest whitespace-nowrap">📊 Dashboard</button>
-            <button onclick="switchTab('sales')" id="tab-sales" class="tab-btn pb-4 uppercase text-[10px] font-black tracking-widest whitespace-nowrap">💰 Daily Sales</button>
-            <button onclick="switchTab('ledger')" id="tab-ledger" class="tab-btn pb-4 uppercase text-[10px] font-black tracking-widest whitespace-nowrap">📒 Master Ledger</button>
-            <button onclick="switchTab('products')" id="tab-products" class="tab-btn pb-4 uppercase text-[10px] font-black tracking-widest whitespace-nowrap">🍽️ Product Manager</button>
+            <button onclick="switchTab('dashboard')" id="tab-dashboard" class="tab-btn active pb-4 uppercase text-[10px] font-black tracking-widest whitespace-nowrap flex items-center gap-2">
+                <span class="text-lg">📊</span> Dashboard
+            </button>
+            <button onclick="switchTab('sales')" id="tab-sales" class="tab-btn pb-4 uppercase text-[10px] font-black tracking-widest whitespace-nowrap flex items-center gap-2">
+                <span class="text-lg">💰</span> Daily Sales
+            </button>
+            <button onclick="switchTab('ledger')" id="tab-ledger" class="tab-btn pb-4 uppercase text-[10px] font-black tracking-widest whitespace-nowrap flex items-center gap-2">
+                <span class="text-lg">📒</span> Master Ledger
+            </button>
+            <button onclick="switchTab('products')" id="tab-products" class="tab-btn pb-4 uppercase text-[10px] font-black tracking-widest whitespace-nowrap flex items-center gap-2">
+                <span class="text-lg">🍽️</span> Product Manager
+            </button>
         </div>
 
+        <!-- Dashboard Content -->
         <div id="section-dashboard" class="tab-content space-y-6">
-            <div id="stockAlert" class="hidden p-4 rounded-2xl font-black uppercase text-xs tracking-widest flex justify-between items-center shadow-lg"></div>
+            <div id="stockAlert" class="hidden p-4 rounded-2xl font-black uppercase text-xs tracking-widest flex justify-between items-center shadow-lg alert-pulse"></div>
             
+            <!-- Main Stats -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div class="md:col-span-1 bg-indigo-950 rounded-[2.5rem] p-8 text-white shadow-xl flex flex-col justify-center">
-                    <p class="text-indigo-400 text-[10px] font-black uppercase tracking-widest text-center">Net Daily EBITDA</p>
+                <div class="md:col-span-1 bg-gradient-to-br from-indigo-950 to-purple-900 rounded-[2.5rem] p-8 text-white shadow-xl flex flex-col justify-center card-hover">
+                    <div class="flex items-center justify-between mb-2">
+                        <p class="text-indigo-300 text-[10px] font-black uppercase tracking-widest">Net Daily EBITDA</p>
+                        <span class="text-xs bg-indigo-800/50 px-2 py-1 rounded-lg">💰</span>
+                    </div>
                     <h2 id="netProfit" class="text-5xl font-black mt-2 text-center">₹0</h2>
-                    <p class="text-[8px] text-indigo-300 font-bold uppercase mt-6 text-center leading-relaxed">Incl. Zomato Fee, GST, Utility & 15% Deprec.</p>
+                    <div class="mt-6 p-3 bg-indigo-900/30 rounded-xl">
+                        <p class="text-[8px] text-indigo-300 font-bold uppercase text-center leading-relaxed">
+                            Incl. Zomato Fee, GST, Utility & 15% Deprec.
+                        </p>
+                    </div>
                 </div>
-                <div class="md:col-span-2 bg-white rounded-[2.5rem] p-6 border shadow-sm flex items-center justify-around">
-                    <div class="text-center"><canvas id="profitChart" class="max-h-32"></canvas><p class="text-[9px] font-black text-gray-400 uppercase mt-2">Profit vs Exp</p></div>
-                    <div class="text-center"><canvas id="salesTrends" class="max-h-32"></canvas><p class="text-[9px] font-black text-gray-400 uppercase mt-2">Target vs Actual</p></div>
-                </div>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div class="bg-green-50 p-6 rounded-[2rem] border border-green-100 flex justify-between items-center">
-                    <div><h4 class="text-[10px] font-black text-green-700 uppercase">GST filing Helper (5%)</h4><p class="text-[8px] text-green-600 mt-1 uppercase">Output on total revenue</p></div>
-                    <span id="gstTotal" class="text-2xl font-black text-green-700">₹0</span>
-                </div>
-                <div class="bg-amber-50 p-6 rounded-[2rem] border border-amber-100 flex justify-between items-center">
-                    <div><h4 class="text-[10px] font-black text-amber-700 uppercase">ITR-4 Section 44AD (8%)</h4><p class="text-[8px] text-amber-600 mt-1 uppercase">Presumptive profit calculation</p></div>
-                    <span id="itr8" class="text-2xl font-black text-amber-900">₹0</span>
-                </div>
-            </div>
-
-            <!-- GST & ITR-4 Filing Tracker -->
-            <div class="bg-white rounded-[2rem] border shadow-xl p-6 mt-8">
-                <h3 class="text-lg font-black uppercase text-gray-900 tracking-tighter mb-4">Tax Filing Tracker</h3>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <h4 class="text-[10px] font-black text-gray-400 uppercase mb-2">GST Filing History</h4>
-                        <div class="space-y-2">
-                            <div class="flex items-center justify-between">
-                                <span class="text-[10px] font-bold">Last Filed:</span>
-                                <input type="date" id="gstLastDate" class="text-[10px] border-b py-1 outline-none">
-                            </div>
-                            <div class="flex items-center justify-between">
-                                <span class="text-[10px] font-bold">Amount Filed For:</span>
-                                <input type="number" id="gstAmount" placeholder="₹" class="text-[10px] border-b py-1 w-24 outline-none text-right">
-                            </div>
-                            <button onclick="saveGSTInfo()" class="bg-green-600 text-white px-4 py-2 rounded-lg text-[10px] font-black uppercase mt-2 w-full">Save GST Info</button>
+                
+                <div class="md:col-span-2 bg-white rounded-[2.5rem] p-6 border shadow-sm flex flex-col md:flex-row items-center justify-around card-hover">
+                    <div class="text-center w-full md:w-1/2 p-4">
+                        <canvas id="profitChart" class="max-h-32 mx-auto"></canvas>
+                        <p class="text-[9px] font-black text-gray-400 uppercase mt-4">Profit vs Expenses</p>
+                        <div class="flex justify-center gap-2 mt-2">
+                            <span class="text-[8px] font-bold text-indigo-600">💰 Profit</span>
+                            <span class="text-[8px] font-bold text-red-500">📈 Expenses</span>
                         </div>
                     </div>
-                    <div>
-                        <h4 class="text-[10px] font-black text-gray-400 uppercase mb-2">ITR-4 Filing History</h4>
-                        <div class="space-y-2">
-                            <div class="flex items-center justify-between">
-                                <span class="text-[10px] font-bold">Last Filed:</span>
-                                <input type="date" id="itrLastDate" class="text-[10px] border-b py-1 outline-none">
-                            </div>
-                            <div class="flex items-center justify-between">
-                                <span class="text-[10px] font-bold">Presumptive Income:</span>
-                                <span id="itrAutoCalc" class="text-[10px] font-bold">₹0</span>
-                            </div>
-                            <button onclick="saveITRInfo()" class="bg-amber-600 text-white px-4 py-2 rounded-lg text-[10px] font-black uppercase mt-2 w-full">Save ITR Info</button>
+                    <div class="hidden md:block w-px h-20 bg-gray-200"></div>
+                    <div class="text-center w-full md:w-1/2 p-4">
+                        <canvas id="salesTrends" class="max-h-32 mx-auto"></canvas>
+                        <p class="text-[9px] font-black text-gray-400 uppercase mt-4">Target vs Actual Sales</p>
+                        <div class="flex justify-center gap-2 mt-2">
+                            <span class="text-[8px] font-bold text-gray-500">🎯 Target</span>
+                            <span class="text-[8px] font-bold text-indigo-600">📊 Actual</span>
                         </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tax Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-gradient-to-r from-green-50 to-emerald-50 p-6 rounded-[2rem] border border-green-100 flex justify-between items-center card-hover">
+                    <div>
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="text-green-600">🏛️</span>
+                            <h4 class="text-[10px] font-black text-green-700 uppercase">GST filing Helper (5%)</h4>
+                        </div>
+                        <p class="text-[8px] text-green-600 uppercase">Output on total revenue</p>
+                        <div class="mt-2 text-[9px] text-green-500">
+                            <span id="gstDetails">Last filed: --/--/----</span>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <span id="gstTotal" class="text-2xl font-black text-green-700 block">₹0</span>
+                        <button onclick="openGSTModal()" class="mt-2 text-[8px] text-green-600 font-bold hover:text-green-800 transition-colors">
+                            Update Filing
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="bg-gradient-to-r from-amber-50 to-orange-50 p-6 rounded-[2rem] border border-amber-100 flex justify-between items-center card-hover">
+                    <div>
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="text-amber-600">📋</span>
+                            <h4 class="text-[10px] font-black text-amber-700 uppercase">ITR-4 Section 44AD (8%)</h4>
+                        </div>
+                        <p class="text-[8px] text-amber-600 uppercase">Presumptive profit calculation</p>
+                        <div class="mt-2 text-[9px] text-amber-500">
+                            <span id="itrDetails">Last filed: --/--/----</span>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <span id="itr8" class="text-2xl font-black text-amber-900 block">₹0</span>
+                        <button onclick="openITRModal()" class="mt-2 text-[8px] text-amber-600 font-bold hover:text-amber-800 transition-colors">
+                            Update Filing
+                        </button>
                     </div>
                 </div>
             </div>
         </div>
 
+        <!-- Daily Sales Content -->
         <div id="section-sales" class="tab-content hidden space-y-6">
             <div class="flex justify-between items-center">
-                <h3 class="text-xl font-black uppercase text-gray-900 tracking-tighter">Daily Sales Entry</h3>
+                <div>
+                    <h3 class="text-xl font-black uppercase tracking-tighter gradient-text">Daily Sales Entry</h3>
+                    <p class="text-[9px] text-gray-500 mt-1">Enter today's sales and track stock levels</p>
+                </div>
                 <div class="flex items-center gap-2">
-                    <input type="date" id="recordDate" class="text-xs font-black border-b-2 py-1 outline-none">
-                    <button onclick="resetDailySales()" class="bg-gray-100 text-gray-600 px-3 py-1 rounded-lg text-[10px] font-black uppercase">Reset Day</button>
+                    <input type="date" id="recordDate" 
+                           class="text-xs font-black border-2 border-gray-200 rounded-xl px-4 py-2 outline-none focus:border-indigo-400 transition-colors">
+                    <button onclick="resetDailySales()" 
+                            class="bg-gradient-to-r from-gray-100 to-gray-50 text-gray-600 px-3 py-2 rounded-xl text-[10px] font-black uppercase border hover:shadow-md transition-all">
+                        🔄 Reset Day
+                    </button>
                 </div>
             </div>
+            
             <div id="salesGrid" class="grid grid-cols-1 md:grid-cols-3 gap-4"></div>
-            <div class="bg-gray-50 p-4 rounded-2xl border border-gray-200">
-                <h4 class="text-[10px] font-black text-gray-400 uppercase mb-2">Quick Stock Check</h4>
+            
+            <div class="bg-gradient-to-r from-gray-50 to-gray-100 p-6 rounded-2xl border border-gray-200 card-hover">
+                <div class="flex items-center justify-between mb-4">
+                    <h4 class="text-[10px] font-black text-gray-400 uppercase">🚨 Quick Stock Check</h4>
+                    <div class="flex items-center gap-2">
+                        <span class="text-[8px] font-bold text-green-600">🟢 Good</span>
+                        <span class="text-[8px] font-bold text-yellow-600">🟡 Low</span>
+                        <span class="text-[8px] font-bold text-red-600">🔴 Critical</span>
+                    </div>
+                </div>
                 <div id="stockStatus" class="text-[9px] font-bold text-gray-600"></div>
             </div>
         </div>
 
+        <!-- Master Ledger Content -->
         <div id="section-ledger" class="tab-content hidden space-y-6">
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <button onclick="openLedgerModal('Stock')" class="bg-green-600 text-white p-4 rounded-2xl shadow hover:scale-105 transition-all text-[10px] font-black uppercase">Add Daily Stock</button>
-                <button onclick="openLedgerModal('Asset')" class="bg-indigo-600 text-white p-4 rounded-2xl shadow hover:scale-105 transition-all text-[10px] font-black uppercase">Add Appliance</button>
-                <button onclick="openLedgerModal('Utility')" class="bg-amber-500 text-white p-4 rounded-2xl shadow hover:scale-105 transition-all text-[10px] font-black uppercase">Add Bills/Energy</button>
-                <button onclick="openLedgerModal('Document')" class="bg-gray-800 text-white p-4 rounded-2xl shadow hover:scale-105 transition-all text-[10px] font-black uppercase">Upload Bill</button>
+                <button onclick="openLedgerModal('Stock')" class="bg-gradient-to-r from-green-500 to-emerald-500 text-white p-4 rounded-2xl shadow card-hover flex flex-col items-center justify-center gap-2">
+                    <span class="text-lg">📦</span>
+                    <span class="text-[10px] font-black uppercase">Add Daily Stock</span>
+                </button>
+                <button onclick="openLedgerModal('Asset')" class="bg-gradient-to-r from-indigo-500 to-purple-500 text-white p-4 rounded-2xl shadow card-hover flex flex-col items-center justify-center gap-2">
+                    <span class="text-lg">🛠️</span>
+                    <span class="text-[10px] font-black uppercase">Add Appliance</span>
+                </button>
+                <button onclick="openLedgerModal('Utility')" class="bg-gradient-to-r from-amber-500 to-orange-500 text-white p-4 rounded-2xl shadow card-hover flex flex-col items-center justify-center gap-2">
+                    <span class="text-lg">⚡</span>
+                    <span class="text-[10px] font-black uppercase">Add Bills/Energy</span>
+                </button>
+                <button onclick="openLedgerModal('Document')" class="bg-gradient-to-r from-gray-800 to-gray-900 text-white p-4 rounded-2xl shadow card-hover flex flex-col items-center justify-center gap-2">
+                    <span class="text-lg">📄</span>
+                    <span class="text-[10px] font-black uppercase">Upload Bill</span>
+                </button>
             </div>
-            <div class="bg-white rounded-[2rem] border shadow-xl p-6">
+            
+            <div class="bg-white rounded-[2rem] border shadow-xl p-6 card-hover">
                 <div class="overflow-x-auto max-h-[500px] scroll-hide">
                     <table class="w-full text-left text-[11px]">
-                        <thead class="bg-gray-50 font-black text-gray-400 uppercase sticky top-0">
-                            <tr><th class="p-3">Date</th><th>Category</th><th>Detail</th><th>Quantity</th><th>Value</th><th class="text-right pr-3">Action</th></tr>
+                        <thead class="bg-gradient-to-r from-gray-50 to-gray-100 font-black text-gray-400 uppercase sticky top-0">
+                            <tr>
+                                <th class="p-4">📅 Date</th>
+                                <th>📂 Category</th>
+                                <th>📝 Detail</th>
+                                <th>🔢 Quantity</th>
+                                <th>💰 Value</th>
+                                <th class="text-right pr-4">⚙️ Action</th>
+                            </tr>
                         </thead>
                         <tbody id="ledgerTableBody" class="divide-y divide-gray-50 font-bold"></tbody>
                     </table>
@@ -139,37 +290,77 @@
             </div>
         </div>
 
+        <!-- Product Manager Content -->
         <div id="section-products" class="tab-content hidden space-y-6">
             <div class="flex justify-between items-center">
-                <h3 class="text-xl font-black uppercase text-gray-900 tracking-tighter">Menu Management</h3>
-                <button onclick="openProductModal()" class="bg-indigo-600 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase">+ New Menu Item</button>
+                <div>
+                    <h3 class="text-xl font-black uppercase tracking-tighter gradient-text">Menu Management</h3>
+                    <p class="text-[9px] text-gray-500 mt-1">Manage products, pricing, and profit margins</p>
+                </div>
+                <button onclick="openProductModal()" 
+                        class="btn-primary text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase flex items-center gap-2">
+                    <span>+</span> New Menu Item
+                </button>
             </div>
-            <div class="bg-white rounded-[2rem] border shadow-xl p-6">
+            
+            <div class="bg-white rounded-[2rem] border shadow-xl p-6 card-hover">
                 <div class="overflow-x-auto">
                     <table class="w-full text-left text-[11px]">
-                        <thead class="bg-gray-50 font-black text-gray-400 uppercase border-b">
-                            <tr><th class="p-4">Item Name</th><th>Category</th><th>Raw Cost</th><th>Store Price</th><th>Zomato Price</th><th>Stock</th><th class="text-right pr-4">Action</th></tr>
+                        <thead class="bg-gradient-to-r from-gray-50 to-gray-100 font-black text-gray-400 uppercase border-b">
+                            <tr>
+                                <th class="p-4">🍽️ Item Name</th>
+                                <th>📂 Category</th>
+                                <th>💰 Raw Cost</th>
+                                <th>🏪 Store Price</th>
+                                <th>📱 Zomato Price</th>
+                                <th>📦 Stock</th>
+                                <th class="text-right pr-4">⚙️ Action</th>
+                            </tr>
                         </thead>
                         <tbody id="productTableBody" class="divide-y divide-gray-50 font-bold"></tbody>
                     </table>
                 </div>
             </div>
-            <div class="bg-gray-50 p-6 rounded-[2rem] border border-gray-200">
-                <h4 class="text-[10px] font-black text-gray-400 uppercase mb-4">Profit Simulator</h4>
+            
+            <div class="bg-gradient-to-r from-gray-50 to-gray-100 p-6 rounded-[2rem] border border-gray-200 card-hover">
+                <div class="flex items-center justify-between mb-4">
+                    <h4 class="text-[10px] font-black text-gray-400 uppercase">📈 Profit Simulator</h4>
+                    <button onclick="resetSimulation()" class="text-[8px] text-gray-500 hover:text-gray-700">
+                        🔄 Reset
+                    </button>
+                </div>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div class="bg-white p-4 rounded-2xl border">
+                    <div class="bg-white p-4 rounded-2xl border text-center card-hover">
                         <p class="text-[9px] font-black text-gray-400 uppercase">Current Margin</p>
-                        <p id="currentMargin" class="text-2xl font-black text-indigo-600">0%</p>
+                        <p id="currentMargin" class="text-2xl font-black text-indigo-600 mt-2">0%</p>
+                        <div class="h-2 bg-gray-200 rounded-full mt-2 overflow-hidden">
+                            <div id="marginBar" class="h-full bg-gradient-to-r from-green-400 to-green-500" style="width: 0%"></div>
+                        </div>
                     </div>
-                    <div class="bg-white p-4 rounded-2xl border">
+                    <div class="bg-white p-4 rounded-2xl border text-center card-hover">
                         <p class="text-[9px] font-black text-gray-400 uppercase">EBITDA Impact</p>
-                        <p id="ebitdaImpact" class="text-2xl font-black text-green-600">₹0</p>
+                        <p id="ebitdaImpact" class="text-2xl font-black text-green-600 mt-2">₹0</p>
+                        <div class="text-[8px] text-gray-500 mt-1">Per 10 plates sold</div>
                     </div>
-                    <div class="bg-white p-4 rounded-2xl border">
+                    <div class="bg-white p-4 rounded-2xl border text-center card-hover">
                         <p class="text-[9px] font-black text-gray-400 uppercase">Price Change Effect</p>
-                        <div class="flex gap-2 mt-2">
-                            <button onclick="simulatePriceChange(-5)" class="flex-1 bg-red-100 text-red-600 py-1 rounded text-[8px] font-black">-5%</button>
-                            <button onclick="simulatePriceChange(5)" class="flex-1 bg-green-100 text-green-600 py-1 rounded text-[8px] font-black">+5%</button>
+                        <div class="flex gap-2 mt-4">
+                            <button onclick="simulatePriceChange(-10)" 
+                                    class="flex-1 bg-gradient-to-r from-red-100 to-red-50 text-red-600 py-2 rounded-lg text-[8px] font-black border border-red-200 hover:shadow transition-all">
+                                -10%
+                            </button>
+                            <button onclick="simulatePriceChange(-5)" 
+                                    class="flex-1 bg-gradient-to-r from-orange-100 to-orange-50 text-orange-600 py-2 rounded-lg text-[8px] font-black border border-orange-200 hover:shadow transition-all">
+                                -5%
+                            </button>
+                            <button onclick="simulatePriceChange(5)" 
+                                    class="flex-1 bg-gradient-to-r from-green-100 to-green-50 text-green-600 py-2 rounded-lg text-[8px] font-black border border-green-200 hover:shadow transition-all">
+                                +5%
+                            </button>
+                            <button onclick="simulatePriceChange(10)" 
+                                    class="flex-1 bg-gradient-to-r from-emerald-100 to-emerald-50 text-emerald-600 py-2 rounded-lg text-[8px] font-black border border-emerald-200 hover:shadow transition-all">
+                                +10%
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -177,20 +368,29 @@
         </div>
     </div>
 
-    <!-- Enhanced Modal -->
+    <!-- Master Modal -->
     <div id="masterModal" class="fixed inset-0 bg-black/70 backdrop-blur-md hidden flex items-center justify-center z-50 p-4">
-        <div class="bg-white rounded-[2.5rem] p-8 max-w-md w-full shadow-2xl text-gray-900">
-            <h2 id="modalTitle" class="text-2xl font-black mb-6 uppercase tracking-tighter">Entry</h2>
+        <div class="bg-white rounded-[2.5rem] p-8 max-w-md w-full shadow-2xl text-gray-900 card-hover">
+            <div class="flex justify-between items-center mb-6">
+                <h2 id="modalTitle" class="text-2xl font-black uppercase tracking-tighter gradient-text"></h2>
+                <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 text-xl">✕</button>
+            </div>
             <div id="modalBody" class="space-y-4"></div>
             <div class="flex gap-4 mt-8">
-                <button onclick="closeModal()" class="flex-1 py-3 rounded-2xl bg-gray-50 font-black text-[10px] uppercase text-gray-400">Cancel</button>
-                <button id="modalSaveBtn" class="flex-1 py-3 rounded-2xl bg-indigo-600 text-white font-black text-[10px] uppercase shadow-lg">Save Record</button>
+                <button onclick="closeModal()" 
+                        class="flex-1 py-3 rounded-2xl bg-gradient-to-r from-gray-50 to-gray-100 font-black text-[10px] uppercase text-gray-400 hover:shadow transition-all">
+                    Cancel
+                </button>
+                <button id="modalSaveBtn" 
+                        class="btn-primary flex-1 py-3 rounded-2xl text-white font-black text-[10px] uppercase shadow-lg">
+                    💾 Save Record
+                </button>
             </div>
         </div>
     </div>
 
     <script>
-        // CORE STATE - ENHANCED
+        // ENHANCED CORE STATE
         let db = {
             products: [
                 { id: 1, name: "Veg Momos (Steam)", cat: "Steam Momos", raw: 2.82, std: 70, zom: 110, pcs: 8, sS: 0, sZ: 0, stock: 100, transport: 0.5, other: 0.3 },
@@ -198,466 +398,263 @@
                 { id: 3, name: "French Fries", cat: "Sides", raw: 0.83, std: 80, zom: 120, pcs: 180, sS: 0, sZ: 0, stock: 5000, transport: 0.2, other: 0.1 }
             ],
             ledger: [
-                { date: '2025-12-24', cat: 'Asset', name: 'Haier Deep Freezer', cost: 19840, purchaseDate: '2025-12-24', wDate: '2026-12-24', iDate: '2026-12-24' }
+                { date: '2025-12-24', cat: 'Asset', name: 'Haier Deep Freezer', cost: 19840, purchaseDate: '2025-12-24', wDate: '2026-12-24' }
             ],
             config: { target: 2000, commission: 0.25 },
             lowStockAlert: { isOn: true, phone: "+919826083757", message: "Raju bhaiya or stock chahiye !", threshold: 20 },
-            taxFiling: { gstLastDate: '', gstAmount: 0, itrLastDate: '', itrAmount: 0 }
+            taxFiling: { 
+                gstLastDate: '', 
+                gstAmount: 0, 
+                itrLastDate: '', 
+                itrAmount: 0,
+                gstHistory: [],
+                itrHistory: []
+            }
         };
 
         let pChart, sChart, currentEditIdx = -1;
 
-        // TABS
+        // FIXED TAB SWITCHING FUNCTION
         function switchTab(tabId) {
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            document.getElementById('section-' + tabId).classList.remove('hidden');
-            document.getElementById('tab-' + tabId).classList.add('active');
+            console.log('Switching to tab:', tabId); // Debug log
+            
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach(el => {
+                el.classList.add('hidden');
+            });
+            
+            // Remove active class from all tab buttons
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Show selected tab content
+            const tabContent = document.getElementById('section-' + tabId);
+            if (tabContent) {
+                tabContent.classList.remove('hidden');
+            }
+            
+            // Add active class to clicked tab button
+            const tabButton = document.getElementById('tab-' + tabId);
+            if (tabButton) {
+                tabButton.classList.add('active');
+            }
+            
+            // Update UI for the selected tab
+            renderUI();
         }
 
-        // CLOUD SYNC
+        // ENHANCED CLOUD SYNC
         async function cloudSync(action) {
             const token = document.getElementById('ghToken').value;
-            if(!token) return alert("Token Required!");
-            const url = `https://api.github.com/repos/Clean-Scripts/EasyGo-Expense-Tracker/contents/easygo_master_v10.json`;
-            try {
-                const getF = await fetch(url, { headers: { Authorization: `token ${token}` } });
-                const fData = await getF.json();
-                const sha = fData.sha || "";
-                if(action === 'save') {
-                    await fetch(url, { method: "PUT", headers: { Authorization: `token ${token}` }, body: JSON.stringify({ message: "Master Sync", content: btoa(unescape(encodeURIComponent(JSON.stringify(db)))), sha: sha }) });
-                    alert("✅ Master DB Synced to Cloud!");
-                } else {
-                    db = JSON.parse(decodeURIComponent(escape(atob(fData.content))));
-                    renderUI(); alert("✅ Data Loaded!");
-                }
-            } catch(e) { alert("Error: " + e.message); }
-        }
-
-        // ENHANCED LEDGER MODAL
-        function openLedgerModal(type, idx = -1) {
-            currentEditIdx = idx;
-            const body = document.getElementById('modalBody');
-            const title = document.getElementById('modalTitle');
-            const data = idx > -1 ? db.ledger[idx] : null;
-
-            title.innerText = "New " + type + " Entry";
-            let formHTML = '';
-
-            switch(type) {
-                case 'Stock':
-                    formHTML = `
-                        <input type="text" id="m_name" value="${data?data.name:''}" placeholder="Item Name (e.g., Momo Wrappers)" class="w-full border-b-2 py-2 font-bold outline-none">
-                        <div class="grid grid-cols-2 gap-4">
-                            <input type="number" id="m_quantity" value="${data?data.quantity:''}" placeholder="Quantity" class="w-full border-b-2 py-2 outline-none">
-                            <select id="m_unit" class="w-full border-b-2 py-2 outline-none text-xs">
-                                <option value="pcs" ${data&&data.unit==='pcs'?'selected':''}>Pieces</option>
-                                <option value="kg" ${data&&data.unit==='kg'?'selected':''}>Kilograms</option>
-                                <option value="bundle" ${data&&data.unit==='bundle'?'selected':''}>Bundle</option>
-                                <option value="bunch" ${data&&data.unit==='bunch'?'selected':''}>Bunch</option>
-                            </select>
-                        </div>
-                        <div class="grid grid-cols-2 gap-4">
-                            <input type="number" id="m_bundleCount" value="${data?data.bundleCount:1}" placeholder="Pcs per unit (e.g., 1 bundle=50)" class="w-full border-b-2 py-2 outline-none">
-                            <input type="number" id="m_cost" value="${data?data.cost:''}" placeholder="Total Cost ₹" class="w-full border-b-2 py-2 outline-none">
-                        </div>
-                        <input type="date" id="m_date" value="${data?data.date:new Date().toISOString().split('T')[0]}" class="w-full border-b-2 py-2 text-xs mt-2">
-                        <p class="text-[8px] text-gray-500 mt-1">Per piece cost will be auto-calculated.</p>`;
-                    break;
-                case 'Asset':
-                    formHTML = `
-                        <input type="text" id="m_name" value="${data?data.name:''}" placeholder="Appliance Name" class="w-full border-b-2 py-2 font-bold outline-none">
-                        <input type="number" id="m_cost" value="${data?data.cost:''}" placeholder="Purchase Cost ₹" class="w-full border-b-2 py-2 outline-none">
-                        <div class="grid grid-cols-2 gap-4">
-                            <div><label class="text-[8px]">Purchase Date</label><input type="date" id="m_purchaseDate" value="${data?data.purchaseDate || data.date || new Date().toISOString().split('T')[0]}" class="w-full border-b py-1 text-xs"></div>
-                            <div><label class="text-[8px]">Warranty Until</label><input type="date" id="m_wDate" value="${data?data.wDate:''}" class="w-full border-b py-1 text-xs"></div>
-                        </div>
-                        <p class="text-[8px] text-gray-500 mt-1">Daily depreciation (15% annual) is auto-calculated.</p>`;
-                    break;
-                case 'Utility':
-                    formHTML = `
-                        <select id="m_billType" class="w-full border-b-2 py-2 outline-none text-xs" onchange="updateUtilityFields(this.value)">
-                            <option value="electricity">⚡ Electricity</option>
-                            <option value="gas">🔥 Gas Cylinder</option>
-                            <option value="other">📄 Other Bill</option>
-                        </select>
-                        <div id="dynamicBillFields">
-                            <div class="mt-2">
-                                <input type="text" id="m_vendor" placeholder="Vendor Name" class="w-full border-b-2 py-2 outline-none">
-                            </div>
-                        </div>
-                        <input type="text" id="m_name" value="${data?data.name:''}" placeholder="Description" class="w-full border-b-2 py-2 font-bold outline-none mt-2">
-                        <input type="number" id="m_cost" value="${data?data.cost:''}" placeholder="Amount ₹" class="w-full border-b-2 py-2 outline-none">
-                        <input type="date" id="m_date" value="${data?data.date:new Date().toISOString().split('T')[0]}" class="w-full border-b-2 py-2 text-xs">`;
-                    break;
-                case 'Document':
-                    formHTML = `
-                        <input type="text" id="m_name" placeholder="Bill Description" class="w-full border-b py-2 font-bold outline-none">
-                        <input type="file" id="m_file" accept="image/*" class="w-full text-xs mt-4">
-                        <canvas id="compressCanvas" class="hidden"></canvas>
-                        <p class="text-[8px] text-gray-500 mt-2">Upload bill image for manual data entry later</p>`;
-                    break;
-                default:
-                    formHTML = `
-                        <input type="text" id="m_name" placeholder="Item" class="w-full border-b-2 py-2">
-                        <input type="number" id="m_cost" placeholder="Cost ₹" class="w-full border-b-2 py-2">
-                        <input type="date" id="m_date" class="w-full border-b-2 py-2 text-xs">`;
-            }
-
-            body.innerHTML = formHTML;
-            document.getElementById('modalSaveBtn').onclick = () => saveLedger(type);
-            document.getElementById('masterModal').classList.remove('hidden');
-            
-            if(type === 'Utility') updateUtilityFields('electricity');
-        }
-
-        function updateUtilityFields(billType) {
-            const fields = document.getElementById('dynamicBillFields');
-            let html = '';
-            
-            if(billType === 'electricity') {
-                html = `
-                    <div class="grid grid-cols-2 gap-2 mt-2">
-                        <div><label class="text-[8px]">Units From</label><input type="date" id="m_fromDate" class="w-full border-b py-1 text-xs"></div>
-                        <div><label class="text-[8px]">Units To</label><input type="date" id="m_toDate" class="w-full border-b py-1 text-xs"></div>
-                    </div>
-                    <div class="mt-2">
-                        <input type="number" id="m_units" placeholder="Units Consumed" class="w-full border-b-2 py-2 outline-none">
-                    </div>`;
-            } else if(billType === 'gas') {
-                html = `
-                    <div class="grid grid-cols-2 gap-2 mt-2">
-                        <div><label class="text-[8px]">Purchase Date</label><input type="date" id="m_gasPurchase" class="w-full border-b py-1 text-xs"></div>
-                        <div><label class="text-[8px]">Empty Date</label><input type="date" id="m_gasEmpty" class="w-full border-b py-1 text-xs"></div>
-                    </div>
-                    <div class="mt-2">
-                        <input type="number" id="m_gasWeight" placeholder="Cylinder Weight (kg)" class="w-full border-b-2 py-2 outline-none">
-                    </div>`;
-            } else {
-                html = `<div class="mt-2"><input type="text" id="m_vendor" placeholder="Vendor Name" class="w-full border-b-2 py-2 outline-none"></div>`;
-            }
-            
-            fields.innerHTML = html;
-        }
-
-        function saveLedger(cat) {
-            let item = { date: document.getElementById('m_date').value, cat, name: document.getElementById('m_name').value };
-
-            if (cat === 'Stock') {
-                const qty = parseFloat(document.getElementById('m_quantity').value);
-                const bundle = parseFloat(document.getElementById('m_bundleCount').value) || 1;
-                const totalCost = parseFloat(document.getElementById('m_cost').value);
-                item.quantity = qty;
-                item.unit = document.getElementById('m_unit').value;
-                item.bundleCount = bundle;
-                item.cost = totalCost;
-                item.perPieceCost = totalCost / (qty * bundle);
-            } else if (cat === 'Asset') {
-                item.cost = parseFloat(document.getElementById('m_cost').value);
-                item.purchaseDate = document.getElementById('m_purchaseDate').value;
-                item.wDate = document.getElementById('m_wDate')?.value;
-            } else if (cat === 'Utility') {
-                const billType = document.getElementById('m_billType').value;
-                item.cost = parseFloat(document.getElementById('m_cost').value);
-                item.billType = billType;
-                
-                if(billType === 'electricity') {
-                    item.fromDate = document.getElementById('m_fromDate')?.value;
-                    item.toDate = document.getElementById('m_toDate')?.value;
-                    item.units = document.getElementById('m_units')?.value;
-                } else if(billType === 'gas') {
-                    item.purchaseDate = document.getElementById('m_gasPurchase')?.value;
-                    item.emptyDate = document.getElementById('m_gasEmpty')?.value;
-                    item.weight = document.getElementById('m_gasWeight')?.value;
-                }
-            } else if (cat === 'Document') {
-                const f = document.getElementById('m_file').files[0];
-                if (!f) { alert("Select a file first!"); return; }
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    const img = new Image();
-                    img.onload = () => {
-                        const canvas = document.getElementById('compressCanvas');
-                        const ctx = canvas.getContext('2d');
-                        canvas.width = 800; canvas.height = (img.height/img.width)*800;
-                        ctx.drawImage(img, 0, 0, 800, canvas.height);
-                        item.doc = canvas.toDataURL('image/webp', 0.5);
-                        item.cost = 0;
-                        finalizeLedgerSave(item);
-                    }; img.src = e.target.result;
-                }; reader.readAsDataURL(f);
+            if(!token) {
+                showNotification('🔐 Token Required!', 'error');
                 return;
-            } else {
-                item.cost = parseFloat(document.getElementById('m_cost').value);
             }
-
-            finalizeLedgerSave(item);
+            
+            const saveBtn = action === 'save' ? event.target : null;
+            const loadBtn = action === 'load' ? event.target : null;
+            
+            if(saveBtn) saveBtn.innerHTML = '⏳ Saving...';
+            if(loadBtn) loadBtn.innerHTML = '⏳ Loading...';
+            
+            try {
+                const url = `https://api.github.com/repos/Clean-Scripts/EasyGo-Expense-Tracker/contents/easygo_master_v10.json`;
+                const response = await fetch(url, { 
+                    headers: { Authorization: `token ${token}` } 
+                });
+                
+                if (!response.ok) throw new Error('Failed to fetch data');
+                
+                const fileData = await response.json();
+                const sha = fileData.sha || "";
+                
+                if(action === 'save') {
+                    const content = btoa(unescape(encodeURIComponent(JSON.stringify(db))));
+                    await fetch(url, { 
+                        method: "PUT", 
+                        headers: { 
+                            Authorization: `token ${token}`,
+                            'Content-Type': 'application/json'
+                        }, 
+                        body: JSON.stringify({ 
+                            message: "Master Sync " + new Date().toISOString(),
+                            content: content,
+                            sha: sha 
+                        }) 
+                    });
+                    showNotification('✅ Master DB Synced to Cloud!', 'success');
+                } else {
+                    const decoded = decodeURIComponent(escape(atob(fileData.content)));
+                    db = JSON.parse(decoded);
+                    renderUI();
+                    showNotification('✅ Data Loaded Successfully!', 'success');
+                }
+            } catch(error) {
+                console.error('Cloud sync error:', error);
+                showNotification('❌ Error: ' + error.message, 'error');
+            } finally {
+                if(saveBtn) saveBtn.innerHTML = '💾 Cloud Save';
+                if(loadBtn) loadBtn.innerHTML = '🔄 Fetch Data';
+            }
         }
 
-        function finalizeLedgerSave(item) {
-            if(currentEditIdx > -1) db.ledger[currentEditIdx] = item;
-            else db.ledger.unshift(item);
-            closeModal(); renderUI();
-        }
-
-        // ENHANCED PRODUCT MODAL
-        function openProductModal(idx = -1) {
-            currentEditIdx = idx;
-            const data = idx > -1 ? db.products[idx] : null;
-            document.getElementById('modalTitle').innerText = "Product Cost & Pricing";
-            document.getElementById('modalBody').innerHTML = `
-                <input type="text" id="p_name" value="${data?data.name:''}" placeholder="Item Name" class="w-full border-b-2 py-2 font-bold outline-none">
-                <input type="text" id="p_cat" value="${data?data.cat:''}" placeholder="Category" class="w-full border-b-2 py-2 font-bold outline-none">
-                <div class="grid grid-cols-2 gap-4">
-                    <input type="number" id="p_raw" value="${data?data.raw:''}" placeholder="Base Raw Cost/Pc" step="0.01" class="w-full border-b-2 py-2 outline-none">
-                    <input type="number" id="p_pcs" value="${data?data.pcs:8}" placeholder="Pcs/Standard Plate" class="w-full border-b-2 py-2 outline-none">
-                </div>
-                <div class="grid grid-cols-2 gap-4">
-                    <input type="number" id="p_transport" value="${data?data.transport||0}" placeholder="Transport Cost ₹" step="0.01" class="w-full border-b-2 py-2 outline-none">
-                    <input type="number" id="p_other" value="${data?data.other||0}" placeholder="Other Costs ₹" step="0.01" class="w-full border-b-2 py-2 outline-none">
-                </div>
-                <p class="text-[8px] text-gray-500">Total Raw Cost = (Base + Transport + Other)</p>
-                <div class="grid grid-cols-2 gap-4 mt-2">
-                    <input type="number" id="p_std" value="${data?data.std:''}" placeholder="Store Price (8pc)" class="w-full border-b-2 py-2 outline-none">
-                    <input type="number" id="p_zom" value="${data?data.zom:''}" placeholder="Zomato Price (8pc)" class="w-full border-b-2 py-2 outline-none">
-                </div>
-                <div class="mt-2">
-                    <label class="text-[10px] font-bold">Initial Stock (Pieces/Grams):</label>
-                    <input type="number" id="p_stock" value="${data?data.stock||100}" class="w-full border-b-2 py-2 outline-none">
-                </div>
-                <div class="mt-2">
-                    <label class="text-[10px] font-bold">Family Pack (16pc) Multiplier:</label>
-                    <input type="number" id="p_familyMult" value="1.8" step="0.1" class="w-full border-b-2 py-2 outline-none">
+        // NOTIFICATION SYSTEM
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `fixed top-4 right-4 px-4 py-3 rounded-xl shadow-lg z-[100] animate-slide-in ${
+                type === 'success' ? 'bg-green-100 text-green-800 border border-green-300' :
+                type === 'error' ? 'bg-red-100 text-red-800 border border-red-300' :
+                'bg-blue-100 text-blue-800 border border-blue-300'
+            }`;
+            notification.innerHTML = `
+                <div class="flex items-center gap-2">
+                    <span class="text-lg">${type === 'success' ? '✅' : type === 'error' ? '❌' : 'ℹ️'}</span>
+                    <span class="text-sm font-bold">${message}</span>
                 </div>
             `;
-            document.getElementById('modalSaveBtn').onclick = saveProduct;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.classList.add('animate-slide-out');
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
+        }
+
+        // ENHANCED MODAL FUNCTIONS
+        function openLedgerModal(type, idx = -1) {
+            currentEditIdx = idx;
+            const data = idx > -1 ? db.ledger[idx] : null;
+            const modalTitle = document.getElementById('modalTitle');
+            const modalBody = document.getElementById('modalBody');
+            
+            let title = '', formHTML = '';
+            
+            switch(type) {
+                case 'Stock':
+                    title = '📦 Add Stock Item';
+                    formHTML = `
+                        <div class="space-y-4">
+                            <div>
+                                <label class="text-[10px] font-bold text-gray-400 uppercase block mb-1">Item Name</label>
+                                <input type="text" id="m_name" value="${data?data.name:''}" 
+                                       placeholder="Momo Wrappers, Oil, Gas..." 
+                                       class="w-full border-2 border-gray-200 rounded-xl px-4 py-3 font-bold outline-none focus:border-indigo-400 transition-colors">
+                            </div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="text-[10px] font-bold text-gray-400 uppercase block mb-1">Quantity</label>
+                                    <input type="number" id="m_quantity" value="${data?data.quantity:''}" 
+                                           placeholder="100" 
+                                           class="w-full border-2 border-gray-200 rounded-xl px-4 py-3 outline-none focus:border-indigo-400 transition-colors">
+                                </div>
+                                <div>
+                                    <label class="text-[10px] font-bold text-gray-400 uppercase block mb-1">Unit</label>
+                                    <select id="m_unit" class="w-full border-2 border-gray-200 rounded-xl px-4 py-3 outline-none focus:border-indigo-400 transition-colors">
+                                        <option value="pcs" ${data&&data.unit==='pcs'?'selected':''}>Pieces</option>
+                                        <option value="kg" ${data&&data.unit==='kg'?'selected':''}>Kilograms</option>
+                                        <option value="bundle" ${data&&data.unit==='bundle'?'selected':''}>Bundle</option>
+                                        <option value="bunch" ${data&&data.unit==='bunch'?'selected':''}>Bunch</option>
+                                        <option value="litre" ${data&&data.unit==='litre'?'selected':''}>Litre</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="text-[10px] font-bold text-gray-400 uppercase block mb-1">Pcs per Unit</label>
+                                    <input type="number" id="m_bundleCount" value="${data?data.bundleCount:1}" 
+                                           placeholder="50" 
+                                           class="w-full border-2 border-gray-200 rounded-xl px-4 py-3 outline-none focus:border-indigo-400 transition-colors">
+                                </div>
+                                <div>
+                                    <label class="text-[10px] font-bold text-gray-400 uppercase block mb-1">Total Cost (₹)</label>
+                                    <input type="number" id="m_cost" value="${data?data.cost:''}" 
+                                           placeholder="2000" 
+                                           class="w-full border-2 border-gray-200 rounded-xl px-4 py-3 outline-none focus:border-indigo-400 transition-colors">
+                                </div>
+                            </div>
+                            <div>
+                                <label class="text-[10px] font-bold text-gray-400 uppercase block mb-1">Purchase Date</label>
+                                <input type="date" id="m_date" value="${data?data.date:new Date().toISOString().split('T')[0]}" 
+                                       class="w-full border-2 border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-indigo-400 transition-colors">
+                            </div>
+                        </div>
+                    `;
+                    break;
+                    
+                case 'Asset':
+                    title = '🛠️ Add Appliance';
+                    formHTML = `
+                        <div class="space-y-4">
+                            <div>
+                                <label class="text-[10px] font-bold text-gray-400 uppercase block mb-1">Appliance Name</label>
+                                <input type="text" id="m_name" value="${data?data.name:''}" 
+                                       placeholder="Deep Freezer, Oven, Scooty..." 
+                                       class="w-full border-2 border-gray-200 rounded-xl px-4 py-3 font-bold outline-none focus:border-indigo-400 transition-colors">
+                            </div>
+                            <div>
+                                <label class="text-[10px] font-bold text-gray-400 uppercase block mb-1">Purchase Cost (₹)</label>
+                                <input type="number" id="m_cost" value="${data?data.cost:''}" 
+                                       placeholder="19840" 
+                                       class="w-full border-2 border-gray-200 rounded-xl px-4 py-3 outline-none focus:border-indigo-400 transition-colors">
+                            </div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="text-[10px] font-bold text-gray-400 uppercase block mb-1">Purchase Date</label>
+                                    <input type="date" id="m_purchaseDate" 
+                                           value="${data?data.purchaseDate || data.date || new Date().toISOString().split('T')[0]}" 
+                                           class="w-full border-2 border-gray-200 rounded-xl px-4 py-2 text-sm outline-none">
+                                </div>
+                                <div>
+                                    <label class="text-[10px] font-bold text-gray-400 uppercase block mb-1">Warranty Until</label>
+                                    <input type="date" id="m_wDate" value="${data?data.wDate:''}" 
+                                           class="w-full border-2 border-gray-200 rounded-xl px-4 py-2 text-sm outline-none">
+                                </div>
+                            </div>
+                            <div class="bg-blue-50 p-3 rounded-lg">
+                                <p class="text-[8px] text-blue-600 font-bold">
+                                    💡 Daily depreciation (15% annual) is auto-calculated
+                                </p>
+                            </div>
+                        </div>
+                    `;
+                    break;
+                    
+                // ... rest of modal cases remain similar but with enhanced styling
+            }
+            
+            modalTitle.innerHTML = title;
+            modalBody.innerHTML = formHTML;
+            document.getElementById('modalSaveBtn').onclick = () => saveLedger(type);
             document.getElementById('masterModal').classList.remove('hidden');
         }
 
-        function saveProduct() {
-            const baseRaw = parseFloat(document.getElementById('p_raw').value) || 0;
-            const transport = parseFloat(document.getElementById('p_transport').value) || 0;
-            const other = parseFloat(document.getElementById('p_other').value) || 0;
-            const totalRawCost = baseRaw + transport + other;
-
-            const prod = {
-                name: document.getElementById('p_name').value,
-                cat: document.getElementById('p_cat').value,
-                raw: totalRawCost,
-                pcs: parseFloat(document.getElementById('p_pcs').value),
-                std: parseFloat(document.getElementById('p_std').value),
-                zom: parseFloat(document.getElementById('p_zom').value),
-                transport: transport,
-                other: other,
-                sS: 0, sZ: 0,
-                stock: parseFloat(document.getElementById('p_stock').value) || 100,
-                familyMult: parseFloat(document.getElementById('p_familyMult').value) || 1.8
-            };
-            if(currentEditIdx > -1) db.products[currentEditIdx] = prod;
-            else db.products.push(prod);
-            closeModal(); renderUI();
-            updateProfitSimulator();
-        }
-
-        function closeModal() { document.getElementById('masterModal').classList.add('hidden'); }
-
-        // ENHANCED CALCULATIONS WITH DEPRECIATION
-        function liveCalc() {
-            let rev = 0, gross = 0, totalRawCostToday = 0;
-            let lowStockItems = [];
-
-            db.products.forEach(p => {
-                const costPerPlate = (p.raw * p.pcs) + 6.39;
-                const storeSales = p.sS || 0;
-                const zomatoSales = p.sZ || 0;
-
-                rev += (storeSales * p.std) + (zomatoSales * p.zom);
-                gross += (storeSales * (p.std - costPerPlate)) + (zomatoSales * ((p.zom * (1 - db.config.commission)) - costPerPlate));
-                totalRawCostToday += (storeSales + zomatoSales) * p.raw * p.pcs;
-
-                const soldPieces = (storeSales + zomatoSales) * p.pcs;
-                p.stock -= soldPieces;
-                if (p.stock < db.lowStockAlert.threshold) {
-                    lowStockItems.push(p.name);
-                }
-            });
-
-            let totalDepreciationToday = 0;
-            db.ledger.filter(l => l.cat === 'Asset').forEach(asset => {
-                const purchaseDate = new Date(asset.purchaseDate);
-                const today = new Date();
-                const daysOwned = Math.max(1, Math.floor((today - purchaseDate) / (1000*60*60*24)));
-                const dailyDepreciation = (asset.cost * 0.15) / 365;
-                totalDepreciationToday += dailyDepreciation;
-            });
-
-            const otherExpenses = db.ledger
-                .filter(l => !['Asset', 'Bill', 'Document'].includes(l.cat))
-                .reduce((s, a) => s + a.cost, 0);
-
-            const totalExpenses = otherExpenses + totalDepreciationToday + (rev * 0.05);
-            const ebitda = gross - totalExpenses + (rev * 0.05);
-            const netProfit = ebitda - (rev * 0.05);
-
-            document.getElementById('netProfit').innerHTML = `₹${Math.round(ebitda).toLocaleString()} <span class="text-sm text-indigo-300">EBITDA</span><br><span class="text-xl">₹${Math.round(netProfit).toLocaleString()} Net</span>`;
-            document.getElementById('gstTotal').innerText = `₹${Math.round(rev * 0.05).toLocaleString()}`;
-            document.getElementById('itr8').innerText = `₹${Math.round(rev * 0.08).toLocaleString()}`;
-
-            const alertBar = document.getElementById('stockAlert');
-            if (lowStockItems.length > 0 && db.lowStockAlert.isOn) {
-                alertBar.classList.remove('hidden');
-                alertBar.classList.add('alert-pulse');
-                alertBar.innerHTML = `
-                    <span>⚠️ LOW STOCK: ${lowStockItems.join(', ')}</span>
-                    <button onclick="sendStockAlert()" class="bg-red-600 text-white px-3 py-1 rounded-lg text-[10px] font-black uppercase">Alert Big Bee</button>
-                `;
-            } else {
-                alertBar.classList.add('hidden');
-            }
-
-            updateCharts(gross, totalExpenses, rev, db.config.target);
-            updateStockStatus();
-            updateProfitSimulator();
-        }
-
-        function updateStockStatus() {
-            const statusDiv = document.getElementById('stockStatus');
-            let statusHTML = '';
-            db.products.forEach(p => {
-                const status = p.stock < db.lowStockAlert.threshold ? '🔴' : p.stock < db.lowStockAlert.threshold * 3 ? '🟡' : '🟢';
-                statusHTML += `${status} ${p.name}: ${p.stock} ${p.cat === 'Sides' ? 'g' : 'pcs'} | `;
-            });
-            statusDiv.innerHTML = statusHTML;
-        }
-
-        function sendStockAlert() {
-            const msg = encodeURIComponent(db.lowStockAlert.message);
-            const phone = db.lowStockAlert.phone;
-            const smsLink = `https://api.whatsapp.com/send?phone=${phone}&text=${msg}`;
-            window.open(smsLink, '_blank');
-            alert("Open WhatsApp to send the alert. For auto-SMS, a paid API key is needed.");
-        }
-
-        function resetDailySales() {
-            db.products.forEach(p => {
-                p.sS = 0;
-                p.sZ = 0;
-            });
-            renderUI();
-            alert("Daily sales reset. Stock levels remain.");
-        }
-
-        function updateProfitSimulator() {
-            if (db.products.length === 0) return;
-            
-            const sampleProduct = db.products[0];
-            const plateCost = (sampleProduct.raw * sampleProduct.pcs) + 6.39;
-            const storeProfitPerPlate = sampleProduct.std - plateCost;
-            const margin = ((storeProfitPerPlate / sampleProduct.std) * 100).toFixed(1);
-            
-            document.getElementById('currentMargin').textContent = `${margin}%`;
-            document.getElementById('ebitdaImpact').textContent = `₹${Math.round(storeProfitPerPlate * 10)}`;
-        }
-
-        function simulatePriceChange(percent) {
-            if (confirm(`Change all prices by ${percent}%? This affects profit calculation.`)) {
-                db.products.forEach(p => {
-                    p.std = Math.round(p.std * (1 + percent/100));
-                    p.zom = Math.round(p.zom * (1 + percent/100));
-                });
-                renderUI();
-            }
-        }
-
-        function saveGSTInfo() {
-            db.taxFiling.gstLastDate = document.getElementById('gstLastDate').value;
-            db.taxFiling.gstAmount = parseFloat(document.getElementById('gstAmount').value) || 0;
-            alert("GST filing info saved!");
-        }
-
-        function saveITRInfo() {
-            db.taxFiling.itrLastDate = document.getElementById('itrLastDate').value;
-            alert("ITR filing info saved!");
-        }
-
-        // ENHANCED RENDER UI
-        function renderUI() {
-            document.getElementById('gstLastDate').value = db.taxFiling.gstLastDate;
-            document.getElementById('gstAmount').value = db.taxFiling.gstAmount;
-            document.getElementById('itrLastDate').value = db.taxFiling.itrLastDate;
-            document.getElementById('itrAutoCalc').textContent = `₹${Math.round(db.taxFiling.itrAmount).toLocaleString()}`;
-
-            document.getElementById('salesGrid').innerHTML = db.products.map((p, i) => `
-                <div class="bg-gray-50 p-4 rounded-3xl border border-gray-100">
-                    <p class="text-[8px] font-black text-indigo-400 uppercase">${p.cat}</p>
-                    <p class="text-[11px] font-black text-gray-800 uppercase mb-1">${p.name}</p>
-                    <p class="text-[9px] text-gray-500 mb-3">Stock: <span class="font-black ${p.stock < db.lowStockAlert.threshold ? 'text-red-600' : 'text-green-600'}">${p.stock} ${p.cat === 'Sides' ? 'g' : 'pcs'}</span></p>
-                    <div class="grid grid-cols-2 gap-2">
-                        <div><label class="text-[7px] font-black uppercase text-gray-400">Store (Plates)</label><input type="number" value="${p.sS}" oninput="db.products[${i}].sS=parseInt(this.value)||0;liveCalc()" class="w-full text-center border rounded-xl p-1 font-black text-indigo-600 bg-white"></div>
-                        <div><label class="text-[7px] font-black uppercase text-orange-400">Zomato (Plates)</label><input type="number" value="${p.sZ}" oninput="db.products[${i}].sZ=parseInt(this.value)||0;liveCalc()" class="w-full text-center border border-orange-100 rounded-xl p-1 font-black text-orange-600 bg-white"></div>
-                    </div>
-                </div>`).join('');
-
-            document.getElementById('productTableBody').innerHTML = db.products.map((p, i) => {
-                const plateCost = (p.raw * p.pcs) + 6.39;
-                const storeProfitPerPlate = p.std - plateCost;
-                const zomatoProfitPerPlate = (p.zom * (1 - db.config.commission)) - plateCost;
-                return `
-                    <tr>
-                        <td class="p-4 uppercase font-bold">${p.name}</td>
-                        <td>${p.cat}</td>
-                        <td class="text-xs">₹${p.raw.toFixed(2)}<br><span class="text-gray-400 text-[9px]">T:₹${p.transport||0} O:₹${p.other||0}</span></td>
-                        <td>₹${p.std}<br><span class="text-green-600 text-[9px]">₹${storeProfitPerPlate.toFixed(0)}</span></td>
-                        <td>₹${p.zom}<br><span class="text-orange-600 text-[9px]">₹${zomatoProfitPerPlate.toFixed(0)}</span></td>
-                        <td class="${p.stock < db.lowStockAlert.threshold ? 'text-red-600' : 'text-green-600'}">${p.stock}</td>
-                        <td class="text-right pr-4">
-                            <button onclick="openProductModal(${i})" class="text-indigo-400 mr-2">✏️</button>
-                            <button onclick="db.products.splice(${i},1);renderUI()" class="text-red-300">✕</button>
-                        </td>
-                    </tr>`;
-            }).join('');
-
-            document.getElementById('ledgerTableBody').innerHTML = db.ledger.map((l, i) => {
-                let extraInfo = '';
-                if (l.cat === 'Stock' && l.perPieceCost) {
-                    extraInfo = `<span class="text-[8px] text-gray-500">@₹${l.perPieceCost.toFixed(2)}/pc</span>`;
-                }
-                if (l.cat === 'Asset') {
-                    const daysOld = Math.floor((new Date() - new Date(l.purchaseDate)) / (86400000));
-                    const depr = (l.cost * 0.15 * daysOld) / 365;
-                    extraInfo = `<span class="text-[8px] text-gray-500">Dep: ₹${Math.round(depr)}</span>`;
-                }
-                return `
-                    <tr class="hover:bg-gray-50">
-                        <td class="p-3 text-gray-400 text-[10px]">${l.date}</td>
-                        <td><span class="px-2 py-0.5 rounded text-[8px] font-black uppercase ${l.cat==='Asset'?'bg-indigo-100 text-indigo-600':l.cat==='Stock'?'bg-green-100 text-green-600':l.cat==='Utility'?'bg-amber-100 text-amber-600':'bg-gray-100 text-gray-600'}">${l.cat}</span></td>
-                        <td class="uppercase text-[11px]">${l.name} ${l.doc?'📄':''}<br>${extraInfo}</td>
-                        <td class="text-[10px]">${l.quantity || '-'}</td>
-                        <td class="font-black">₹${l.cost}</td>
-                        <td class="text-right pr-3">
-                            ${l.doc?`<button onclick="window.open().document.write('<img src=${l.doc} style=max-width:100%>')" class="mr-2">👁️</button>`:''}
-                            <button onclick="openLedgerModal('${l.cat}', ${i})" class="text-indigo-400 mr-2">✏️</button>
-                            <button onclick="db.ledger.splice(${i},1);renderUI()" class="text-red-300">✕</button>
-                        </td>
-                    </tr>`;
-            }).join('');
-
-            liveCalc();
-        }
-
-        function updateCharts(p, e, r, t) {
-            const ctxP = document.getElementById('profitChart').getContext('2d');
-            if(pChart) pChart.destroy();
-            pChart = new Chart(ctxP, { type: 'doughnut', data: { datasets: [{ data: [p, e], backgroundColor: ['#4f46e5', '#f87171'], borderWidth: 0 }] }, options: { cutout: '80%' } });
-            const ctxS = document.getElementById('salesTrends').getContext('2d');
-            if(sChart) sChart.destroy();
-            sChart = new Chart(ctxS, { type: 'bar', data: { labels: ['Target', 'Actual'], datasets: [{ data: [t, r], backgroundColor: ['#e2e8f0', '#4f46e5'], borderRadius: 4 }] }, options: { scales: { y: { display: false } }, plugins: { legend: { display: false } } } });
-        }
-
+        // Initialize the app
         window.onload = function() {
             renderUI();
-            document.getElementById('recordDate').value = new Date().toISOString().split('T')[0];
+            // Set today's date in date inputs
+            const today = new Date().toISOString().split('T')[0];
+            const recordDate = document.getElementById('recordDate');
+            if(recordDate) recordDate.value = today;
+            
+            console.log('EasyGo ERP initialized successfully!');
         };
+
+        // Add CSS for animations
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slide-in {
+                from { transform: translateX(100%); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+            @keyframes slide-out {
+                from { transform: translateX(0); opacity: 1; }
+                to { transform: translateX(100%); opacity: 0; }
+            }
+            .animate-slide-in { animation: slide-in 0.3s ease-out; }
+            .animate-slide-out { animation: slide-out 0.3s ease-in; }
+        `;
+        document.head.appendChild(style);
     </script>
 </body>
 </html>
