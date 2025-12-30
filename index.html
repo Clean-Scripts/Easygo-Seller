@@ -1,3 +1,4 @@
+<!-- EasyGo-Admin Panel (For Restaurant Use Only) -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -5,558 +6,512 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/Clean-Scripts/EasyGo-Expense-Tracker/refs/heads/main/logo.png">
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <title>Easy Go ERP | Master Command</title>
+    <title>EasyGo | Admin Panel</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
-        body { font-family: 'Inter', sans-serif; background: #05070a; color: #fff; }
-        .glass-panel { background: rgba(255, 255, 255, 0.98); backdrop-filter: blur(20px); color: #1a1a1a; }
-        input[type="number"]::-webkit-inner-spin-button { display: none; }
-        .scroll-hide::-webkit-scrollbar { display: none; }
-        .alert-pulse { animation: pulse 1.5s infinite; background: #fee2e2; border: 2px solid #ef4444; color: #b91c1c; }
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.6; } 100% { opacity: 1; } }
-        .tab-btn.active { border-bottom: 3px solid #4f46e5; color: #4f46e5; font-weight: 900; }
-        .tab-btn:hover:not(.active) { color: #6366f1; }
+        .order-card { transition: all 0.3s; }
+        .order-card:hover { transform: translateY(-2px); }
+        .status-pending { border-left: 4px solid #f59e0b; }
+        .status-preparing { border-left: 4px solid #3b82f6; }
+        .status-delivered { border-left: 4px solid #10b981; }
+        .status-cancelled { border-left: 4px solid #ef4444; }
     </style>
 </head>
-<body class="min-h-screen p-2 md:p-6">
-    <div class="max-w-7xl mx-auto glass-panel rounded-[2rem] md:rounded-[3rem] shadow-2xl p-4 md:p-8">
-        
-        <!-- HEADER (ORIGINAL) -->
-        <div class="flex flex-col md:flex-row justify-between items-center mb-6 pb-6 border-b border-gray-100">
-            <div class="flex items-center gap-4">
-                <img src="https://raw.githubusercontent.com/Clean-Scripts/EasyGo-Expense-Tracker/refs/heads/main/logo.png" class="h-14 md:h-20 bg-white rounded-full p-1 shadow-md">
-                <div>
-                    <h1 class="text-3xl md:text-4xl font-black uppercase text-gray-900 tracking-tighter">Easy Go Admin</h1>
-                    <p class="text-[10px] font-bold text-indigo-500 tracking-widest uppercase">Master Enterprise Build v10.0</p>
-                </div>
-            </div>
-            <div class="flex flex-wrap gap-2 mt-4 md:mt-0">
-                <button onclick="saveToLocalStorage()" class="bg-indigo-600 text-white px-5 py-2 rounded-xl font-bold uppercase text-[10px] shadow-lg hover:bg-indigo-700 transition-all">💾 Save Data</button>
-                <button onclick="loadFromLocalStorage()" class="bg-gray-100 text-gray-600 px-5 py-2 rounded-xl font-bold uppercase text-[10px] border shadow-sm hover:bg-gray-200 transition-all">🔄 Load Data</button>
-                <button onclick="exportData()" class="bg-green-600 text-white px-5 py-2 rounded-xl font-bold uppercase text-[10px] shadow-lg hover:bg-green-700 transition-all">📤 Export</button>
-            </div>
-        </div>
+<body class="bg-gray-100 min-h-screen">
 
-        <!-- TABS (ORIGINAL STRUCTURE) -->
-        <div class="flex gap-6 mb-8 border-b border-gray-100 overflow-x-auto scroll-hide">
-            <button onclick="switchTab('dashboard')" id="tab-dashboard" class="tab-btn active pb-4 uppercase text-[10px] font-black tracking-widest whitespace-nowrap">📊 Dashboard</button>
-            <button onclick="switchTab('sales')" id="tab-sales" class="tab-btn pb-4 uppercase text-[10px] font-black tracking-widest whitespace-nowrap">💰 Daily Sales</button>
-            <button onclick="switchTab('ledger')" id="tab-ledger" class="tab-btn pb-4 uppercase text-[10px] font-black tracking-widest whitespace-nowrap">📒 Master Ledger</button>
-            <button onclick="switchTab('products')" id="tab-products" class="tab-btn pb-4 uppercase text-[10px] font-black tracking-widest whitespace-nowrap">🍽️ Product Manager</button>
-        </div>
-
-        <!-- DASHBOARD (ORIGINAL) -->
-        <div id="section-dashboard" class="tab-content space-y-6">
-            <div id="stockAlert" class="hidden p-4 rounded-2xl font-black uppercase text-xs tracking-widest flex justify-between items-center shadow-lg"></div>
+    <!-- Admin Login (Simple PIN) -->
+    <div id="login-section" class="min-h-screen flex items-center justify-center">
+        <div class="bg-white p-8 rounded-2xl shadow-lg max-w-md w-full">
+            <div class="text-center mb-8">
+                <img src="https://raw.githubusercontent.com/Clean-Scripts/EasyGo-Expense-Tracker/refs/heads/main/logo.png" 
+                     class="h-20 w-20 mx-auto mb-4">
+                <h1 class="text-2xl font-bold">EasyGo Admin</h1>
+                <p class="text-gray-600">Restaurant Management Panel</p>
+            </div>
             
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div class="md:col-span-1 bg-indigo-950 rounded-[2.5rem] p-8 text-white shadow-xl flex flex-col justify-center">
-                    <p class="text-indigo-400 text-[10px] font-black uppercase tracking-widest text-center">Net Daily EBITDA</p>
-                    <h2 id="netProfit" class="text-5xl font-black mt-2 text-center">₹0</h2>
-                    <p class="text-[8px] text-indigo-300 font-bold uppercase mt-6 text-center leading-relaxed">Incl. Zomato Fee, GST, Utility & 15% Deprec.</p>
-                </div>
-                <div class="md:col-span-2 bg-white rounded-[2.5rem] p-6 border shadow-sm flex items-center justify-around">
-                    <div class="text-center"><canvas id="profitChart" class="max-h-32"></canvas><p class="text-[9px] font-black text-gray-400 uppercase mt-2">Profit vs Exp</p></div>
-                    <div class="text-center"><canvas id="salesTrends" class="max-h-32"></canvas><p class="text-[9px] font-black text-gray-400 uppercase mt-2">Target vs Actual</p></div>
+            <input type="password" id="admin-pin" 
+                   placeholder="Enter 4-digit PIN" 
+                   class="w-full p-4 border-2 border-gray-300 rounded-xl mb-4 text-center text-2xl"
+                   maxlength="4">
+            
+            <button onclick="loginAdmin()" 
+                    class="w-full py-3 bg-green-500 text-white font-bold rounded-xl hover:bg-green-600">
+                🔐 Login
+            </button>
+            
+            <p class="text-sm text-gray-500 text-center mt-4">
+                PIN: 3732 (Default - Change in production)
+            </p>
+        </div>
+    </div>
+
+    <!-- Admin Dashboard -->
+    <div id="dashboard-section" class="hidden p-4 md:p-8">
+        <div class="flex justify-between items-center mb-8">
+            <div>
+                <h1 class="text-3xl font-bold">EasyGo Admin Dashboard</h1>
+                <p class="text-gray-600">Manage orders and deliveries in real-time</p>
+            </div>
+            <div class="flex items-center gap-4">
+                <span id="current-time" class="font-bold"></span>
+                <button onclick="logoutAdmin()" 
+                        class="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600">
+                    Logout
+                </button>
+            </div>
+        </div>
+
+        <!-- Active Orders -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- Pending Orders -->
+            <div class="bg-white rounded-2xl shadow-lg p-6">
+                <h2 class="text-xl font-bold mb-6">📦 Active Orders</h2>
+                <div id="pending-orders" class="space-y-4">
+                    <!-- Orders will load here -->
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div class="bg-green-50 p-6 rounded-[2rem] border border-green-100 flex justify-between items-center">
-                    <div><h4 class="text-[10px] font-black text-green-700 uppercase">GST filing Helper (5%)</h4><p class="text-[8px] text-green-600 mt-1 uppercase">Output on total revenue</p></div>
-                    <span id="gstTotal" class="text-2xl font-black text-green-700">₹0</span>
+            <!-- Order Actions -->
+            <div class="bg-white rounded-2xl shadow-lg p-6">
+                <h2 class="text-xl font-bold mb-6">⚡ Quick Actions</h2>
+                
+                <!-- Update Order Status -->
+                <div class="mb-8">
+                    <h3 class="font-bold mb-4">Update Order Status</h3>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button onclick="updateStatus('preparing')" 
+                                class="p-3 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200">
+                            👨‍🍳 Preparing
+                        </button>
+                        <button onclick="updateStatus('out-for-delivery')" 
+                                class="p-3 bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200">
+                            🛵 Out for Delivery
+                        </button>
+                        <button onclick="markAsDelivered()" 
+                                class="p-3 bg-green-100 text-green-700 rounded-lg hover:bg-green-200">
+                            ✅ Mark Delivered
+                        </button>
+                        <button onclick="markAsCancelled()" 
+                                class="p-3 bg-red-100 text-red-700 rounded-lg hover:bg-red-200">
+                            ❌ Cancel Order
+                        </button>
+                    </div>
                 </div>
-                <div class="bg-amber-50 p-6 rounded-[2rem] border border-amber-100 flex justify-between items-center">
-                    <div><h4 class="text-[10px] font-black text-amber-700 uppercase">ITR-4 Section 44AD (8%)</h4><p class="text-[8px] text-amber-600 mt-1 uppercase">Presumptive profit calculation</p></div>
-                    <span id="itr8" class="text-2xl font-black text-amber-900">₹0</span>
+
+                <!-- Delivery Partner Info -->
+                <div class="mb-8">
+                    <h3 class="font-bold mb-4">🚚 Delivery Partner</h3>
+                    <div class="space-y-3">
+                        <div class="flex justify-between">
+                            <span>Name:</span>
+                            <span id="delivery-name" class="font-bold">Rahul</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Phone:</span>
+                            <span id="delivery-phone" class="font-bold">+91 98765 43210</span>
+                        </div>
+                        <button onclick="callDeliveryPartner()" 
+                                class="w-full p-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
+                            📞 Call Delivery Partner
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Customer Notification -->
+                <div>
+                    <h3 class="font-bold mb-4">📱 Notify Customer</h3>
+                    <div class="space-y-3">
+                        <button onclick="sendCustomerNotification('preparing')" 
+                                class="w-full p-3 bg-yellow-100 text-yellow-700 rounded-lg hover:bg-yellow-200 text-left">
+                            ⏰ Notify: Food is being prepared
+                        </button>
+                        <button onclick="sendCustomerNotification('out-for-delivery')" 
+                                class="w-full p-3 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 text-left">
+                            🛵 Notify: Out for delivery
+                        </button>
+                        <button onclick="sendCustomerNotification('delivered')" 
+                                class="w-full p-3 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 text-left">
+                            ✅ Notify: Order delivered
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- SALES (ORIGINAL) -->
-        <div id="section-sales" class="tab-content hidden space-y-6">
-            <div class="flex justify-between items-center">
-                <h3 class="text-xl font-black uppercase text-gray-900 tracking-tighter">Daily Sales Entry</h3>
-                <div class="flex items-center gap-2">
-                    <input type="date" id="recordDate" class="text-xs font-black border-b-2 py-1 outline-none">
-                    <button onclick="resetDailySales()" class="bg-gray-100 text-gray-600 px-3 py-1 rounded-lg text-[10px] font-black uppercase">Reset Day</button>
-                </div>
-            </div>
-            <div id="salesGrid" class="grid grid-cols-1 md:grid-cols-3 gap-4"></div>
-            <div class="bg-gray-50 p-4 rounded-2xl border border-gray-200">
-                <h4 class="text-[10px] font-black text-gray-400 uppercase mb-2">Quick Stock Check</h4>
-                <div id="stockStatus" class="text-[9px] font-bold text-gray-600"></div>
-            </div>
-        </div>
-
-        <!-- LEDGER (ORIGINAL) -->
-        <div id="section-ledger" class="tab-content hidden space-y-6">
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <button onclick="openLedgerModal('Stock')" class="bg-green-600 text-white p-4 rounded-2xl shadow hover:scale-105 transition-all text-[10px] font-black uppercase">Add Daily Stock</button>
-                <button onclick="openLedgerModal('Asset')" class="bg-indigo-600 text-white p-4 rounded-2xl shadow hover:scale-105 transition-all text-[10px] font-black uppercase">Add Appliance</button>
-                <button onclick="openLedgerModal('Utility')" class="bg-amber-500 text-white p-4 rounded-2xl shadow hover:scale-105 transition-all text-[10px] font-black uppercase">Add Bills/Energy</button>
-                <button onclick="openLedgerModal('Document')" class="bg-gray-800 text-white p-4 rounded-2xl shadow hover:scale-105 transition-all text-[10px] font-black uppercase">Upload Bill</button>
-            </div>
-            <div class="bg-white rounded-[2rem] border shadow-xl p-6">
-                <div class="overflow-x-auto max-h-[500px] scroll-hide">
-                    <table class="w-full text-left text-[11px]">
-                        <thead class="bg-gray-50 font-black text-gray-400 uppercase sticky top-0">
-                            <tr><th class="p-3">Date</th><th>Category</th><th>Detail</th><th>Quantity</th><th>Value</th><th class="text-right pr-3">Action</th></tr>
-                        </thead>
-                        <tbody id="ledgerTableBody" class="divide-y divide-gray-50 font-bold"></tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        <!-- PRODUCTS (ORIGINAL) -->
-        <div id="section-products" class="tab-content hidden space-y-6">
-            <div class="flex justify-between items-center">
-                <h3 class="text-xl font-black uppercase text-gray-900 tracking-tighter">Menu Management</h3>
-                <button onclick="openProductModal()" class="bg-indigo-600 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase">+ New Menu Item</button>
-            </div>
-            <div class="bg-white rounded-[2rem] border shadow-xl p-6">
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left text-[11px]">
-                        <thead class="bg-gray-50 font-black text-gray-400 uppercase border-b">
-                            <tr><th class="p-4">Item Name</th><th>Category</th><th>Raw Cost</th><th>Store Price</th><th>Zomato Price</th><th>Stock</th><th class="text-right pr-4">Action</th></tr>
-                        </thead>
-                        <tbody id="productTableBody" class="divide-y divide-gray-50 font-bold"></tbody>
-                    </table>
-                </div>
+        <!-- Delivered Orders History -->
+        <div class="mt-8 bg-white rounded-2xl shadow-lg p-6">
+            <h2 class="text-xl font-bold mb-6">📋 Order History (Last 24 Hours)</h2>
+            <div id="order-history" class="space-y-3">
+                <!-- History will load here -->
             </div>
         </div>
     </div>
 
-    <!-- MODAL (ORIGINAL) -->
-    <div id="masterModal" class="fixed inset-0 bg-black/70 backdrop-blur-md hidden flex items-center justify-center z-50 p-4">
-        <div class="bg-white rounded-[2.5rem] p-8 max-w-md w-full shadow-2xl text-gray-900">
-            <h2 id="modalTitle" class="text-2xl font-black mb-6 uppercase tracking-tighter">Entry</h2>
-            <div id="modalBody" class="space-y-4"></div>
-            <div class="flex gap-4 mt-8">
-                <button onclick="closeModal()" class="flex-1 py-3 rounded-2xl bg-gray-50 font-black text-[10px] uppercase text-gray-400">Cancel</button>
-                <button id="modalSaveBtn" class="flex-1 py-3 rounded-2xl bg-indigo-600 text-white font-black text-[10px] uppercase shadow-lg">Save Record</button>
+    <!-- Delivery Confirmation Modal -->
+    <div id="delivery-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+        <div class="bg-white rounded-2xl p-8 max-w-md w-full mx-4">
+            <h3 class="text-2xl font-bold mb-6">✅ Confirm Delivery</h3>
+            
+            <div class="mb-6">
+                <p class="text-gray-600 mb-2">Enter OTP received from customer:</p>
+                <input type="text" id="delivery-otp" 
+                       placeholder="Enter 6-digit OTP" 
+                       class="w-full p-4 border-2 border-gray-300 rounded-xl text-center text-2xl"
+                       maxlength="6">
+            </div>
+            
+            <div class="mb-6">
+                <p class="text-gray-600 mb-2">Delivery Partner Name:</p>
+                <input type="text" id="delivery-partner-name" 
+                       placeholder="Enter name" 
+                       class="w-full p-3 border border-gray-300 rounded-lg">
+            </div>
+            
+            <div class="flex gap-4">
+                <button onclick="confirmDelivery()" 
+                        class="flex-1 py-3 bg-green-500 text-white font-bold rounded-xl hover:bg-green-600">
+                    ✅ Confirm
+                </button>
+                <button onclick="closeDeliveryModal()" 
+                        class="flex-1 py-3 bg-gray-300 text-gray-700 rounded-xl hover:bg-gray-400">
+                    Cancel
+                </button>
             </div>
         </div>
     </div>
 
     <script>
-        // CORE STATE
-        let db = {
-            products: [
-                { id: 1, name: "Veg Momos (Steam)", cat: "Steam Momos", raw: 2.82, std: 70, zom: 110, pcs: 8, sS: 0, sZ: 0, stock: 100, transport: 0.5, other: 0.3 },
-                { id: 2, name: "Veg Momos (Fried)", cat: "Fried Momos", raw: 2.82, std: 80, zom: 120, pcs: 8, sS: 0, sZ: 0, stock: 100, transport: 0.5, other: 0.3 },
-                { id: 3, name: "French Fries", cat: "Sides", raw: 0.83, std: 80, zom: 120, pcs: 180, sS: 0, sZ: 0, stock: 5000, transport: 0.2, other: 0.1 }
-            ],
-            ledger: [
-                { date: '2025-12-24', cat: 'Asset', name: 'Haier Deep Freezer', cost: 19840, purchaseDate: '2025-12-24', wDate: '2026-12-24' }
-            ],
-            config: { target: 2000, commission: 0.25 },
-            lowStockAlert: { isOn: true, phone: "+919826083757", message: "Raju bhaiya or stock chahiye !", threshold: 20 },
-            taxFiling: { gstLastDate: '', gstAmount: 0, itrLastDate: '', itrAmount: 0 }
-        };
+        // Admin PIN (Change this in production)
+        const ADMIN_PIN = "8008";
+        let currentOrder = null;
 
-        let pChart, sChart, currentModalType = '', currentEditIdx = -1;
-
-        // === TAB SWITCHING (SIMPLIFIED - THIS WILL WORK) ===
-        function switchTab(tabId) {
-            console.log('Switching to:', tabId);
+        // Load active orders from localStorage
+        function loadActiveOrders() {
+            const orders = JSON.parse(localStorage.getItem('easygo-active-orders')) || [];
+            const container = document.getElementById('pending-orders');
             
-            // Hide all tab contents
-            document.querySelectorAll('.tab-content').forEach(el => {
-                el.classList.add('hidden');
-            });
-            
-            // Remove active class from all tabs
-            document.querySelectorAll('.tab-btn').forEach(btn => {
-                btn.classList.remove('active');
-            });
-            
-            // Show selected tab
-            const tabContent = document.getElementById('section-' + tabId);
-            if (tabContent) {
-                tabContent.classList.remove('hidden');
-            }
-            
-            // Activate clicked tab button
-            const tabButton = document.getElementById('tab-' + tabId);
-            if (tabButton) {
-                tabButton.classList.add('active');
-            }
-            
-            renderUI();
-        }
-
-        // === LOCAL STORAGE FUNCTIONS ===
-        function saveToLocalStorage() {
-            try {
-                localStorage.setItem('easygo_erp_data', JSON.stringify(db));
-                alert('✅ Data saved successfully!');
-            } catch (e) {
-                alert('❌ Error saving: ' + e.message);
-            }
-        }
-
-        function loadFromLocalStorage() {
-            try {
-                const saved = localStorage.getItem('easygo_erp_data');
-                if (saved) {
-                    db = JSON.parse(saved);
-                    renderUI();
-                    alert('✅ Data loaded successfully!');
-                } else {
-                    alert('ℹ️ No saved data found.');
-                }
-            } catch (e) {
-                alert('❌ Error loading: ' + e.message);
-            }
-        }
-
-        function exportData() {
-            const data = JSON.stringify(db, null, 2);
-            const blob = new Blob([data], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'easygo_backup_' + new Date().toISOString().split('T')[0] + '.json';
-            a.click();
-        }
-
-        // === LEDGER MODAL ===
-        function openLedgerModal(type, idx = -1) {
-            currentModalType = type;
-            currentEditIdx = idx;
-            const data = idx > -1 ? db.ledger[idx] : null;
-            
-            document.getElementById('modalTitle').innerText = 'New ' + type + ' Entry';
-            let html = '';
-            
-            if (type === 'Stock') {
-                html = `
-                    <input type="text" id="m_name" value="${data?data.name:''}" placeholder="Item Name" class="w-full border-b-2 py-2 font-bold outline-none">
-                    <div class="grid grid-cols-2 gap-4">
-                        <input type="number" id="m_quantity" value="${data?data.quantity:''}" placeholder="Quantity" class="w-full border-b-2 py-2 outline-none">
-                        <select id="m_unit" class="w-full border-b-2 py-2 outline-none">
-                            <option value="pcs" ${data&&data.unit==='pcs'?'selected':''}>Pieces</option>
-                            <option value="kg" ${data&&data.unit==='kg'?'selected':''}>Kilograms</option>
-                            <option value="bundle" ${data&&data.unit==='bundle'?'selected':''}>Bundle</option>
-                        </select>
+            if (orders.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-8 text-gray-500">
+                        <div class="text-4xl mb-4">📭</div>
+                        <p>No active orders</p>
                     </div>
-                    <div class="grid grid-cols-2 gap-4">
-                        <input type="number" id="m_bundleCount" value="${data?data.bundleCount:1}" placeholder="Pcs per bundle" class="w-full border-b-2 py-2 outline-none">
-                        <input type="number" id="m_cost" value="${data?data.cost:''}" placeholder="Total Cost ₹" class="w-full border-b-2 py-2 outline-none">
-                    </div>
-                    <input type="date" id="m_date" value="${data?data.date:new Date().toISOString().split('T')[0]}" class="w-full border-b-2 py-2 text-xs">`;
-            } else if (type === 'Asset') {
-                html = `
-                    <input type="text" id="m_name" value="${data?data.name:''}" placeholder="Appliance Name" class="w-full border-b-2 py-2 font-bold outline-none">
-                    <input type="number" id="m_cost" value="${data?data.cost:''}" placeholder="Purchase Cost ₹" class="w-full border-b-2 py-2 outline-none">
-                    <div class="grid grid-cols-2 gap-4">
-                        <input type="date" id="m_purchaseDate" value="${data?data.purchaseDate||new Date().toISOString().split('T')[0]}" class="w-full border-b py-1 text-xs">
-                        <input type="date" id="m_wDate" value="${data?data.wDate:''}" placeholder="Warranty Date" class="w-full border-b py-1 text-xs">
-                    </div>`;
-            } else if (type === 'Utility') {
-                html = `
-                    <input type="text" id="m_name" value="${data?data.name:''}" placeholder="Bill Description" class="w-full border-b-2 py-2 font-bold outline-none">
-                    <input type="number" id="m_cost" value="${data?data.cost:''}" placeholder="Amount ₹" class="w-full border-b-2 py-2 outline-none">
-                    <input type="date" id="m_date" value="${data?data.date:new Date().toISOString().split('T')[0]}" class="w-full border-b-2 py-2 text-xs">`;
-            } else if (type === 'Document') {
-                html = `
-                    <input type="text" id="m_name" placeholder="Bill Description" class="w-full border-b py-2 font-bold outline-none">
-                    <input type="file" id="m_file" accept="image/*" class="w-full text-xs mt-4">`;
+                `;
+                return;
             }
             
-            document.getElementById('modalBody').innerHTML = html;
-            document.getElementById('modalSaveBtn').onclick = saveLedgerItem;
-            document.getElementById('masterModal').classList.remove('hidden');
-        }
-
-        function saveLedgerItem() {
-            const item = {
-                date: document.getElementById('m_date')?.value || new Date().toISOString().split('T')[0],
-                cat: currentModalType,
-                name: document.getElementById('m_name').value,
-                cost: parseFloat(document.getElementById('m_cost')?.value) || 0
-            };
-            
-            if (currentModalType === 'Stock') {
-                item.quantity = parseFloat(document.getElementById('m_quantity').value) || 0;
-                item.unit = document.getElementById('m_unit').value;
-                item.bundleCount = parseFloat(document.getElementById('m_bundleCount').value) || 1;
-                item.perPieceCost = item.cost / (item.quantity * item.bundleCount);
-            }
-            if (currentModalType === 'Asset') {
-                item.purchaseDate = document.getElementById('m_purchaseDate').value;
-                item.wDate = document.getElementById('m_wDate').value;
-            }
-            if (currentModalType === 'Document') {
-                const file = document.getElementById('m_file').files[0];
-                if (file) {
-                    const reader = new FileReader();
-                    reader.onload = function(e) {
-                        item.file = e.target.result;
-                        finalizeSave(item);
-                    };
-                    reader.readAsDataURL(file);
-                    return;
-                }
-            }
-            
-            finalizeSave(item);
-        }
-
-        function finalizeSave(item) {
-            if (currentEditIdx > -1) {
-                db.ledger[currentEditIdx] = item;
-            } else {
-                db.ledger.unshift(item);
-            }
-            closeModal();
-            renderUI();
-            saveToLocalStorage();
-        }
-
-        function closeModal() {
-            document.getElementById('masterModal').classList.add('hidden');
-            currentModalType = '';
-            currentEditIdx = -1;
-        }
-
-        // === PRODUCT MODAL ===
-        function openProductModal(idx = -1) {
-            currentEditIdx = idx;
-            const data = idx > -1 ? db.products[idx] : null;
-            
-            document.getElementById('modalTitle').innerText = "Product Details";
-            document.getElementById('modalBody').innerHTML = `
-                <input type="text" id="p_name" value="${data?data.name:''}" placeholder="Item Name" class="w-full border-b-2 py-2 font-bold outline-none">
-                <input type="text" id="p_cat" value="${data?data.cat:''}" placeholder="Category" class="w-full border-b-2 py-2 font-bold outline-none">
-                <div class="grid grid-cols-2 gap-4">
-                    <input type="number" id="p_raw" value="${data?data.raw:''}" placeholder="Base Cost/Pc" step="0.01" class="w-full border-b-2 py-2 outline-none">
-                    <input type="number" id="p_pcs" value="${data?data.pcs:8}" placeholder="Pcs/Plate" class="w-full border-b-2 py-2 outline-none">
-                </div>
-                <div class="grid grid-cols-2 gap-4">
-                    <input type="number" id="p_transport" value="${data?data.transport||0}" placeholder="Transport Cost" step="0.01" class="w-full border-b-2 py-2 outline-none">
-                    <input type="number" id="p_other" value="${data?data.other||0}" placeholder="Other Costs" step="0.01" class="w-full border-b-2 py-2 outline-none">
-                </div>
-                <div class="grid grid-cols-2 gap-4">
-                    <input type="number" id="p_std" value="${data?data.std:''}" placeholder="Store Price" class="w-full border-b-2 py-2 outline-none">
-                    <input type="number" id="p_zom" value="${data?data.zom:''}" placeholder="Zomato Price" class="w-full border-b-2 py-2 outline-none">
-                </div>
-                <input type="number" id="p_stock" value="${data?data.stock||100}" placeholder="Initial Stock" class="w-full border-b-2 py-2 outline-none">`;
-            
-            document.getElementById('modalSaveBtn').onclick = saveProduct;
-            document.getElementById('masterModal').classList.remove('hidden');
-        }
-
-        function saveProduct() {
-            const product = {
-                name: document.getElementById('p_name').value,
-                cat: document.getElementById('p_cat').value,
-                raw: parseFloat(document.getElementById('p_raw').value) || 0,
-                pcs: parseFloat(document.getElementById('p_pcs').value) || 8,
-                transport: parseFloat(document.getElementById('p_transport').value) || 0,
-                other: parseFloat(document.getElementById('p_other').value) || 0,
-                std: parseFloat(document.getElementById('p_std').value) || 0,
-                zom: parseFloat(document.getElementById('p_zom').value) || 0,
-                stock: parseFloat(document.getElementById('p_stock').value) || 100,
-                sS: 0,
-                sZ: 0
-            };
-            
-            // Recalculate raw cost with transport
-            product.raw = product.raw + product.transport + product.other;
-            
-            if (currentEditIdx > -1) {
-                db.products[currentEditIdx] = product;
-            } else {
-                db.products.push(product);
-            }
-            
-            closeModal();
-            renderUI();
-            saveToLocalStorage();
-        }
-
-        // === CALCULATIONS ===
-        function liveCalc() {
-            let rev = 0, gross = 0;
-            let lowStockItems = [];
-
-            db.products.forEach(p => {
-                const costPerPlate = (p.raw * p.pcs) + 6.39;
-                const storeSales = p.sS || 0;
-                const zomatoSales = p.sZ || 0;
-
-                rev += (storeSales * p.std) + (zomatoSales * p.zom);
-                gross += (storeSales * (p.std - costPerPlate)) + (zomatoSales * ((p.zom * (1 - db.config.commission)) - costPerPlate));
-
-                const soldPieces = (storeSales + zomatoSales) * p.pcs;
-                p.stock -= soldPieces;
-                if (p.stock < db.lowStockAlert.threshold) {
-                    lowStockItems.push(p.name);
-                }
-            });
-
-            // Depreciation
-            let totalDepreciation = 0;
-            db.ledger.filter(l => l.cat === 'Asset').forEach(asset => {
-                if (asset.purchaseDate) {
-                    const days = Math.max(1, Math.floor((new Date() - new Date(asset.purchaseDate)) / (1000*60*60*24)));
-                    totalDepreciation += (asset.cost * 0.15 * days) / 365;
-                }
-            });
-
-            const otherExpenses = db.ledger
-                .filter(l => !['Asset', 'Document'].includes(l.cat))
-                .reduce((s, a) => s + a.cost, 0);
-
-            const totalExpenses = otherExpenses + totalDepreciation + (rev * 0.05);
-            const ebitda = gross - totalExpenses + (rev * 0.05);
-            const netProfit = ebitda - (rev * 0.05);
-
-            document.getElementById('netProfit').innerHTML = `₹${Math.round(ebitda).toLocaleString()} <span class="text-sm">EBITDA</span><br><span class="text-xl">₹${Math.round(netProfit)} Net</span>`;
-            document.getElementById('gstTotal').innerText = `₹${Math.round(rev * 0.05).toLocaleString()}`;
-            document.getElementById('itr8').innerText = `₹${Math.round(rev * 0.08).toLocaleString()}`;
-
-            // Stock alert
-            const alertBar = document.getElementById('stockAlert');
-            if (lowStockItems.length > 0 && db.lowStockAlert.isOn) {
-                alertBar.classList.remove('hidden');
-                alertBar.classList.add('alert-pulse');
-                alertBar.innerHTML = `
-                    <span>⚠️ LOW STOCK: ${lowStockItems.join(', ')}</span>
-                    <button onclick="sendStockAlert()" class="bg-red-600 text-white px-3 py-1 rounded-lg text-[10px] font-black uppercase">
-                        Alert Big Bee
-                    </button>`;
-            } else {
-                alertBar.classList.add('hidden');
-            }
-
-            updateCharts(gross, totalExpenses, rev, db.config.target);
-            updateStockStatus();
-        }
-
-        function updateStockStatus() {
-            const statusDiv = document.getElementById('stockStatus');
             let html = '';
-            db.products.forEach(p => {
-                const status = p.stock < db.lowStockAlert.threshold ? '🔴' : p.stock < db.lowStockAlert.threshold * 3 ? '🟡' : '🟢';
-                html += `${status} ${p.name}: ${p.stock} ${p.cat === 'Sides' ? 'g' : 'pcs'} | `;
-            });
-            statusDiv.innerHTML = html;
-        }
-
-        function sendStockAlert() {
-            const msg = encodeURIComponent(db.lowStockAlert.message);
-            const phone = db.lowStockAlert.phone;
-            const link = `https://api.whatsapp.com/send?phone=${phone}&text=${msg}`;
-            window.open(link, '_blank');
-        }
-
-        function resetDailySales() {
-            if (confirm('Reset today\'s sales?')) {
-                db.products.forEach(p => {
-                    p.sS = 0;
-                    p.sZ = 0;
-                });
-                renderUI();
-            }
-        }
-
-        // === RENDER UI ===
-        function renderUI() {
-            // Sales Grid
-            document.getElementById('salesGrid').innerHTML = db.products.map((p, i) => `
-                <div class="bg-gray-50 p-4 rounded-3xl border border-gray-100">
-                    <p class="text-[8px] font-black text-indigo-400 uppercase">${p.cat}</p>
-                    <p class="text-[11px] font-black text-gray-800 uppercase mb-1">${p.name}</p>
-                    <p class="text-[9px] text-gray-500 mb-3">Stock: <span class="font-black ${p.stock < db.lowStockAlert.threshold ? 'text-red-600' : 'text-green-600'}">
-                        ${p.stock} ${p.cat === 'Sides' ? 'g' : 'pcs'}
-                    </span></p>
-                    <div class="grid grid-cols-2 gap-2">
-                        <div><label class="text-[7px] font-black uppercase text-gray-400">Store</label>
-                            <input type="number" value="${p.sS}" oninput="db.products[${i}].sS=parseInt(this.value)||0;liveCalc()" class="w-full text-center border rounded-xl p-1 font-black text-indigo-600 bg-white">
+            orders.forEach(order => {
+                const statusColors = {
+                    'pending': 'bg-yellow-100 text-yellow-800',
+                    'preparing': 'bg-blue-100 text-blue-800',
+                    'out-for-delivery': 'bg-purple-100 text-purple-800',
+                    'delivered': 'bg-green-100 text-green-800',
+                    'cancelled': 'bg-red-100 text-red-800'
+                };
+                
+                html += `
+                    <div class="order-card ${statusColors[order.status]} p-4 rounded-xl cursor-pointer"
+                         onclick="selectOrder('${order.orderId}')">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <p class="font-bold">Order #${order.orderId}</p>
+                                <p class="text-sm">${order.customerName} | ${order.customerPhone}</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="font-bold">₹${order.totalAmount}</p>
+                                <p class="text-sm">${order.status.toUpperCase()}</p>
+                            </div>
                         </div>
-                        <div><label class="text-[7px] font-black uppercase text-orange-400">Zomato</label>
-                            <input type="number" value="${p.sZ}" oninput="db.products[${i}].sZ=parseInt(this.value)||0;liveCalc()" class="w-full text-center border border-orange-100 rounded-xl p-1 font-black text-orange-600 bg-white">
+                        <div class="mt-2 text-sm">
+                            <p>📍 ${order.address.substring(0, 50)}...</p>
+                            <p>🕐 ${new Date(order.timestamp).toLocaleTimeString()}</p>
                         </div>
                     </div>
-                </div>`).join('');
-
-            // Product Table
-            document.getElementById('productTableBody').innerHTML = db.products.map((p, i) => {
-                const plateCost = (p.raw * p.pcs) + 6.39;
-                const storeProfit = p.std - plateCost;
-                const zomatoProfit = (p.zom * (1 - db.config.commission)) - plateCost;
-                return `
-                    <tr>
-                        <td class="p-4 uppercase font-bold">${p.name}</td>
-                        <td>${p.cat}</td>
-                        <td class="text-xs">₹${p.raw.toFixed(2)}</td>
-                        <td>₹${p.std}<br><span class="text-green-600 text-[9px]">₹${storeProfit.toFixed(0)}</span></td>
-                        <td>₹${p.zom}<br><span class="text-orange-600 text-[9px]">₹${zomatoProfit.toFixed(0)}</span></td>
-                        <td class="${p.stock < db.lowStockAlert.threshold ? 'text-red-600' : 'text-green-600'}">${p.stock}</td>
-                        <td class="text-right pr-4">
-                            <button onclick="openProductModal(${i})" class="text-indigo-400 mr-2">✏️</button>
-                            <button onclick="db.products.splice(${i},1);renderUI();saveToLocalStorage()" class="text-red-300">✕</button>
-                        </td>
-                    </tr>`;
-            }).join('');
-
-            // Ledger Table
-            document.getElementById('ledgerTableBody').innerHTML = db.ledger.map((l, i) => {
-                let extra = '';
-                if (l.cat === 'Stock' && l.perPieceCost) {
-                    extra = `<span class="text-[8px] text-gray-500">@₹${l.perPieceCost.toFixed(2)}/pc</span>`;
+                `;
+            });
+            
+            container.innerHTML = html;
+            
+            // Load first order by default
+            if (orders.length > 0) {
+                selectOrder(orders[0].orderId);
+            }
+        }
+        
+        function selectOrder(orderId) {
+            const orders = JSON.parse(localStorage.getItem('easygo-active-orders')) || [];
+            currentOrder = orders.find(order => order.orderId === orderId);
+            
+            if (currentOrder) {
+                // Update UI to show selected order
+                document.querySelectorAll('.order-card').forEach(card => {
+                    card.classList.remove('ring-2', 'ring-green-500');
+                });
+                event.currentTarget.classList.add('ring-2', 'ring-green-500');
+                
+                // Update delivery info
+                document.getElementById('delivery-name').textContent = currentOrder.deliveryPartner || 'Rahul';
+                document.getElementById('delivery-phone').textContent = currentOrder.deliveryPhone || '+91 98765 43210';
+            }
+        }
+        
+        function updateStatus(status) {
+            if (!currentOrder) {
+                alert('Please select an order first');
+                return;
+            }
+            
+            currentOrder.status = status;
+            currentOrder.updatedAt = new Date().toISOString();
+            
+            // Update localStorage
+            const orders = JSON.parse(localStorage.getItem('easygo-active-orders')) || [];
+            const index = orders.findIndex(o => o.orderId === currentOrder.orderId);
+            if (index > -1) {
+                orders[index] = currentOrder;
+                localStorage.setItem('easygo-active-orders', JSON.stringify(orders));
+            }
+            
+            // Notify customer via WhatsApp
+            sendCustomerNotification(status);
+            
+            // Reload orders
+            loadActiveOrders();
+            alert(`Order status updated to: ${status}`);
+        }
+        
+        function markAsDelivered() {
+            if (!currentOrder) {
+                alert('Please select an order first');
+                return;
+            }
+            
+            // Show delivery confirmation modal
+            document.getElementById('delivery-modal').classList.remove('hidden');
+        }
+        
+        function confirmDelivery() {
+            const otp = document.getElementById('delivery-otp').value;
+            const partnerName = document.getElementById('delivery-partner-name').value;
+            
+            if (!otp || otp.length !== 6) {
+                alert('Please enter valid 6-digit OTP');
+                return;
+            }
+            
+            // Verify OTP (in real app, check against customer's OTP)
+            const customerOTP = localStorage.getItem('easygo-otp') || '';
+            if (otp !== customerOTP && otp !== '800880') { // 123456 for testing
+                alert('❌ Invalid OTP. Please check and try again.');
+                return;
+            }
+            
+            // Update order status
+            currentOrder.status = 'delivered';
+            currentOrder.deliveredAt = new Date().toISOString();
+            currentOrder.deliveryPartner = partnerName;
+            currentOrder.deliveryOTP = otp;
+            
+            // Move to order history
+            const activeOrders = JSON.parse(localStorage.getItem('easygo-active-orders')) || [];
+            const history = JSON.parse(localStorage.getItem('easygo-order-history')) || [];
+            
+            // Remove from active
+            const updatedActive = activeOrders.filter(o => o.orderId !== currentOrder.orderId);
+            
+            // Add to history
+            history.push(currentOrder);
+            
+            // Save
+            localStorage.setItem('easygo-active-orders', JSON.stringify(updatedActive));
+            localStorage.setItem('easygo-order-history', JSON.stringify(history));
+            
+            // Send WhatsApp notification to customer
+            sendDeliveryConfirmationToCustomer(currentOrder);
+            
+            // Send WhatsApp notification to restaurant
+            sendDeliveryConfirmationToRestaurant(currentOrder, partnerName, otp);
+            
+            // Close modal
+            closeDeliveryModal();
+            
+            // Reload
+            loadActiveOrders();
+            loadOrderHistory();
+            
+            alert('✅ Order marked as delivered successfully!');
+        }
+        
+        function sendDeliveryConfirmationToCustomer(order) {
+            const message = `✅ *ORDER DELIVERED* ✅%0A%0A` +
+                          `Your EasyGo order has been delivered!%0A%0A` +
+                          `*Order ID:* ${order.orderId}%0A` +
+                          `*Amount:* ₹${order.totalAmount}%0A` +
+                          `*Delivery Partner:* ${order.deliveryPartner}%0A` +
+                          `*OTP Verified:* ${order.deliveryOTP}%0A%0A` +
+                          `📦 *Items:*%0A`;
+            
+            order.items.forEach(item => {
+                message += `• ${item.name} × ${item.quantity}%0A`;
+            });
+            
+            message += `%0A📍 *Delivery Address:*%0A${order.address}%0A%0A` +
+                      `⏰ *Delivered At:* ${new Date().toLocaleTimeString()}%0A%0A` +
+                      `🙏 *Please rate your experience:*%0A` +
+                      `https://www.google.com/maps/place/EasyGo/@22.7767506,75.9581962,17z`;
+            
+            window.open(`https://wa.me/${order.customerPhone}?text=${message}`, '_blank');
+        }
+        
+        function sendDeliveryConfirmationToRestaurant(order, partnerName, otp) {
+            const message = `✅ *DELIVERY CONFIRMED* ✅%0A%0A` +
+                          `Order #${order.orderId} has been delivered.%0A%0A` +
+                          `*Customer:* ${order.customerName}%0A` +
+                          `*Phone:* ${order.customerPhone}%0A` +
+                          `*Amount:* ₹${order.totalAmount}%0A` +
+                          `*Delivery Partner:* ${partnerName}%0A` +
+                          `*OTP Verified:* ${otp}%0A` +
+                          `*Time:* ${new Date().toLocaleTimeString()}%0A%0A` +
+                          `📍 *Location Link:*%0A${order.locationLink}`;
+            
+            window.open(`https://wa.me/917651837322?text=${message}`, '_blank');
+        }
+        
+        function sendCustomerNotification(status) {
+            if (!currentOrder) return;
+            
+            const messages = {
+                'preparing': `👨‍🍳 *EasyGo Order Update* 👨‍🍳%0A%0AYour order #${currentOrder.orderId} is being prepared.%0AEstimated ready time: 15-20 minutes.%0A%0AThank you for choosing EasyGo!`,
+                'out-for-delivery': `🛵 *EasyGo Order Update* 🛵%0A%0AYour order #${currentOrder.orderId} is out for delivery!%0ADelivery partner: Rahul%0AEstimated arrival: 25-30 minutes.%0A%0APlease keep your OTP ready for delivery confirmation.`,
+                'delivered': `✅ *EasyGo Order Update* ✅%0A%0AYour order #${currentOrder.orderId} has been delivered!%0A%0APlease rate your experience:%0Ahttps://www.google.com/maps/place/EasyGo/@22.7767506,75.9581962,17z`
+            };
+            
+            if (messages[status]) {
+                window.open(`https://wa.me/${currentOrder.customerPhone}?text=${messages[status]}`, '_blank');
+            }
+        }
+        
+        function markAsCancelled() {
+            if (!currentOrder) return;
+            
+            if (confirm('Are you sure you want to cancel this order?')) {
+                currentOrder.status = 'cancelled';
+                currentOrder.cancelledAt = new Date().toISOString();
+                
+                // Send cancellation notification to customer
+                const cancelMessage = `❌ *ORDER CANCELLED* ❌%0A%0A` +
+                                    `We're sorry, but your order #${currentOrder.orderId} has been cancelled.%0A%0A` +
+                                    `*Refund Information:*%0AYour payment of ₹${currentOrder.totalAmount} will be refunded within 5 working days.%0A%0A` +
+                                    `For any queries, contact: 76518 37322`;
+                
+                window.open(`https://wa.me/${currentOrder.customerPhone}?text=${cancelMessage}`, '_blank');
+                
+                // Send to restaurant
+                const restaurantMessage = `❌ *ORDER CANCELLED* ❌%0A%0A` +
+                                        `Order #${currentOrder.orderId} has been cancelled.%0A%0A` +
+                                        `*Customer:* ${currentOrder.customerName}%0A` +
+                                        `*Phone:* ${currentOrder.customerPhone}%0A` +
+                                        `*Amount to Refund:* ₹${currentOrder.totalAmount}%0A` +
+                                        `*Time:* ${new Date().toLocaleTimeString()}`;
+                
+                window.open(`https://wa.me/917651837322?text=${restaurantMessage}`, '_blank');
+                
+                // Update localStorage
+                const orders = JSON.parse(localStorage.getItem('easygo-active-orders')) || [];
+                const index = orders.findIndex(o => o.orderId === currentOrder.orderId);
+                if (index > -1) {
+                    orders.splice(index, 1);
+                    localStorage.setItem('easygo-active-orders', JSON.stringify(orders));
                 }
-                return `
-                    <tr class="hover:bg-gray-50">
-                        <td class="p-3 text-gray-400 text-[10px]">${l.date}</td>
-                        <td><span class="px-2 py-0.5 rounded text-[8px] font-black uppercase ${l.cat==='Asset'?'bg-indigo-100 text-indigo-600':l.cat==='Stock'?'bg-green-100 text-green-600':'bg-gray-100 text-gray-600'}">${l.cat}</span></td>
-                        <td class="uppercase text-[11px]">${l.name} ${l.file?'📄':''}</td>
-                        <td class="text-[10px]">${l.quantity || '-'}</td>
-                        <td class="font-black">₹${l.cost}</td>
-                        <td class="text-right pr-3">
-                            ${l.file?`<button onclick="window.open().document.write('<img src=${l.file}>')" class="mr-2">👁️</button>`:''}
-                            <button onclick="openLedgerModal('${l.cat}', ${i})" class="text-indigo-400 mr-2">✏️</button>
-                            <button onclick="db.ledger.splice(${i},1);renderUI();saveToLocalStorage()" class="text-red-300">✕</button>
-                        </td>
-                    </tr>`;
-            }).join('');
-
-            liveCalc();
-        }
-
-        function updateCharts(p, e, r, t) {
-            const ctxP = document.getElementById('profitChart');
-            if (pChart) pChart.destroy();
-            if (ctxP) {
-                pChart = new Chart(ctxP, { 
-                    type: 'doughnut', 
-                    data: { datasets: [{ data: [p, e], backgroundColor: ['#4f46e5', '#f87171'], borderWidth: 0 }] }, 
-                    options: { cutout: '80%' } 
-                });
-            }
-
-            const ctxS = document.getElementById('salesTrends');
-            if (sChart) sChart.destroy();
-            if (ctxS) {
-                sChart = new Chart(ctxS, { 
-                    type: 'bar', 
-                    data: { labels: ['T', 'A'], datasets: [{ data: [t, r], backgroundColor: ['#e2e8f0', '#4f46e5'], borderRadius: 4 }] }, 
-                    options: { scales: { y: { display: false } }, plugins: { legend: { display: false } } } 
-                });
+                
+                // Add to cancelled orders
+                const cancelled = JSON.parse(localStorage.getItem('easygo-cancelled-orders')) || [];
+                cancelled.push(currentOrder);
+                localStorage.setItem('easygo-cancelled-orders', JSON.stringify(cancelled));
+                
+                loadActiveOrders();
+                alert('Order cancelled and notifications sent.');
             }
         }
-
-        // === INITIALIZE ===
-        window.onload = function() {
-            loadFromLocalStorage();
-            document.getElementById('recordDate').value = new Date().toISOString().split('T')[0];
-            console.log('EasyGo ERP loaded. Tabs should work now.');
-        };
+        
+        function loadOrderHistory() {
+            const history = JSON.parse(localStorage.getItem('easygo-order-history')) || [];
+            const container = document.getElementById('order-history');
+            
+            if (history.length === 0) {
+                container.innerHTML = '<p class="text-gray-500">No orders in history</p>';
+                return;
+            }
+            
+            let html = '';
+            history.slice(-10).reverse().forEach(order => {
+                html += `
+                    <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                        <div>
+                            <p class="font-medium">${order.customerName}</p>
+                            <p class="text-sm text-gray-600">${new Date(order.deliveredAt).toLocaleTimeString()}</p>
+                        </div>
+                        <div class="text-right">
+                            <p class="font-bold">₹${order.totalAmount}</p>
+                            <p class="text-sm text-green-600">✅ Delivered</p>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+        
+        function callDeliveryPartner() {
+            if (currentOrder && currentOrder.deliveryPhone) {
+                window.open(`tel:${currentOrder.deliveryPhone}`, '_blank');
+            } else {
+                window.open('tel:+919876543210', '_blank');
+            }
+        }
+        
+        function closeDeliveryModal() {
+            document.getElementById('delivery-modal').classList.add('hidden');
+            document.getElementById('delivery-otp').value = '';
+            document.getElementById('delivery-partner-name').value = '';
+        }
+        
+        function loginAdmin() {
+            const pin = document.getElementById('admin-pin').value;
+            if (pin === ADMIN_PIN) {
+                document.getElementById('login-section').classList.add('hidden');
+                document.getElementById('dashboard-section').classList.remove('hidden');
+                
+                // Load data
+                loadActiveOrders();
+                loadOrderHistory();
+                
+                // Update time
+                setInterval(() => {
+                    document.getElementById('current-time').textContent = new Date().toLocaleTimeString();
+                }, 1000);
+            } else {
+                alert('Invalid PIN');
+            }
+        }
+        
+        function logoutAdmin() {
+            document.getElementById('login-section').classList.remove('hidden');
+            document.getElementById('dashboard-section').classList.add('hidden');
+            document.getElementById('admin-pin').value = '';
+        }
+        
+        // Initialize
+        window.addEventListener('DOMContentLoaded', () => {
+            // Check if already logged in (for demo)
+            const isLoggedIn = localStorage.getItem('easygo-admin-logged-in');
+            if (isLoggedIn === 'true') {
+                document.getElementById('login-section').classList.add('hidden');
+                document.getElementById('dashboard-section').classList.remove('hidden');
+                loadActiveOrders();
+                loadOrderHistory();
+            }
+        });
     </script>
 </body>
 </html>
