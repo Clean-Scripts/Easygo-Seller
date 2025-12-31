@@ -245,8 +245,8 @@
                 event.currentTarget.classList.add('ring-2', 'ring-green-500');
                 
                 // Update delivery info
-                document.getElementById('delivery-name').textContent = currentOrder.deliveryPartner || 'Rahul';
-                document.getElementById('delivery-phone').textContent = currentOrder.deliveryPhone || '+91 98765 43210';
+                document.getElementById('delivery-name').textContent = currentOrder.deliveryPartner || 'Nishant';
+                document.getElementById('delivery-phone').textContent = currentOrder.deliveryPhone || '+91 76518 37322';
             }
         }
         
@@ -377,7 +377,7 @@
             
             const messages = {
                 'preparing': `👨‍🍳 *EasyGo Order Update* 👨‍🍳%0A%0AYour order #${currentOrder.orderId} is being prepared.%0AEstimated ready time: 15-20 minutes.%0A%0AThank you for choosing EasyGo!`,
-                'out-for-delivery': `🛵 *EasyGo Order Update* 🛵%0A%0AYour order #${currentOrder.orderId} is out for delivery!%0ADelivery partner: Rahul%0AEstimated arrival: 25-30 minutes.%0A%0APlease keep your OTP ready for delivery confirmation.`,
+                'out-for-delivery': `🛵 *EasyGo Order Update* 🛵%0A%0AYour order #${currentOrder.orderId} is out for delivery!%0ADelivery partner: EasyGo Rider%0AEstimated arrival: 25-30 minutes.%0A%0APlease keep your OTP ready for delivery confirmation.`,
                 'delivered': `✅ *EasyGo Order Update* ✅%0A%0AYour order #${currentOrder.orderId} has been delivered!%0A%0APlease rate your experience:%0Ahttps://www.google.com/maps/place/EasyGo/@22.7767506,75.9581962,17z`
             };
             
