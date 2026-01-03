@@ -1,4 +1,3 @@
-<!-- EasyGo-Admin Panel (For Restaurant Use Only) -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -14,18 +13,25 @@
         .status-preparing { border-left: 4px solid #3b82f6; }
         .status-delivered { border-left: 4px solid #10b981; }
         .status-cancelled { border-left: 4px solid #ef4444; }
+        .modal-overlay {
+            animation: fadeIn 0.3s ease-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
     </style>
 </head>
 <body class="bg-gray-100 min-h-screen">
 
-    <!-- Admin Login (Simple PIN) -->
+    <!-- Admin Login -->
     <div id="login-section" class="min-h-screen flex items-center justify-center">
         <div class="bg-white p-8 rounded-2xl shadow-lg max-w-md w-full">
             <div class="text-center mb-8">
                 <img src="https://raw.githubusercontent.com/Clean-Scripts/EasyGo-Expense-Tracker/refs/heads/main/logo.png" 
                      class="h-20 w-20 mx-auto mb-4">
                 <h1 class="text-2xl font-bold">EasyGo Admin</h1>
-                <p class="text-gray-600">Management Panel</p>
+                <p class="text-gray-600">Restaurant Management Panel</p>
             </div>
             
             <input type="password" id="admin-pin" 
@@ -34,7 +40,7 @@
                    maxlength="4">
             
             <button onclick="loginAdmin()" 
-                    class="w-full py-3 bg-green-500 text-white font-bold rounded-xl hover:bg-green-600">
+                    class="w-full py-3 bg-green-500 text-white font-bold rounded-xl hover:bg-green-600 transition-colors">
                 🔐 Login
             </button>
         </div>
@@ -42,100 +48,123 @@
 
     <!-- Admin Dashboard -->
     <div id="dashboard-section" class="hidden p-4 md:p-8">
-        <div class="flex justify-between items-center mb-8">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
             <div>
-                <h1 class="text-3xl font-bold">EasyGo Majdoor Dashboard</h1>
+                <h1 class="text-3xl font-bold">EasyGo Restaurant Dashboard</h1>
                 <p class="text-gray-600">Manage orders and deliveries in real-time</p>
             </div>
             <div class="flex items-center gap-4">
-                <span id="current-time" class="font-bold"></span>
+                <div class="bg-white px-4 py-2 rounded-lg shadow">
+                    <span id="current-time" class="font-bold text-gray-800"></span>
+                </div>
                 <button onclick="logoutAdmin()" 
-                        class="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600">
+                        class="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors">
                     Logout
                 </button>
             </div>
         </div>
 
         <!-- Active Orders -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <!-- Pending Orders -->
-            <div class="bg-white rounded-2xl shadow-lg p-6">
-                <h2 class="text-xl font-bold mb-6">📦 Active Orders</h2>
-                <div id="pending-orders" class="space-y-4">
-                    <!-- Orders will load here -->
+            <div class="lg:col-span-2">
+                <div class="bg-white rounded-2xl shadow-lg p-6">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-xl font-bold">📦 Active Orders</h2>
+                        <span id="active-count" class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-bold">0</span>
+                    </div>
+                    <div id="pending-orders" class="space-y-4 max-h-[600px] overflow-y-auto pr-2">
+                        <!-- Orders will load here -->
+                    </div>
                 </div>
             </div>
 
-            <!-- Order Actions -->
-            <div class="bg-white rounded-2xl shadow-lg p-6">
-                <h2 class="text-xl font-bold mb-6">⚡ Quick Actions</h2>
-                
-                <!-- Update Order Status -->
-                <div class="mb-8">
-                    <h3 class="font-bold mb-4">Update Order Status</h3>
-                    <div class="grid grid-cols-2 gap-2">
-                        <button onclick="updateStatus('preparing')" 
-                                class="p-3 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200">
-                            👨‍🍳 Preparing
-                        </button>
-                        <button onclick="updateStatus('out-for-delivery')" 
-                                class="p-3 bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200">
-                            🛵 Out for Delivery
-                        </button>
-                        <button onclick="markAsDelivered()" 
-                                class="p-3 bg-green-100 text-green-700 rounded-lg hover:bg-green-200">
-                            ✅ Mark Delivered
-                        </button>
-                        <button onclick="markAsCancelled()" 
-                                class="p-3 bg-red-100 text-red-700 rounded-lg hover:bg-red-200">
-                            ❌ Cancel Order
-                        </button>
+            <!-- Order Actions & Details -->
+            <div class="space-y-8">
+                <!-- Selected Order Details -->
+                <div id="order-details-section" class="bg-white rounded-2xl shadow-lg p-6 hidden">
+                    <h2 class="text-xl font-bold mb-6">📋 Order Details</h2>
+                    <div id="selected-order-details" class="space-y-4">
+                        <!-- Order details will load here -->
                     </div>
                 </div>
 
-                <!-- Delivery Partner Info -->
-                <div class="mb-8">
-                    <h3 class="font-bold mb-4">🚚 Delivery Partner</h3>
-                    <div class="space-y-3">
-                        <div class="flex justify-between">
-                            <span>Name:</span>
-                            <span id="delivery-name" class="font-bold">Pati-Dev</span>
+                <!-- Quick Actions -->
+                <div class="bg-white rounded-2xl shadow-lg p-6">
+                    <h2 class="text-xl font-bold mb-6">⚡ Quick Actions</h2>
+                    
+                    <!-- Update Order Status -->
+                    <div class="mb-8">
+                        <h3 class="font-bold mb-4">Update Order Status</h3>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button onclick="updateOrderStatus('preparing')" 
+                                    class="p-3 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors">
+                                👨‍🍳 Preparing
+                            </button>
+                            <button onclick="updateOrderStatus('out-for-delivery')" 
+                                    class="p-3 bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 transition-colors">
+                                🛵 Out for Delivery
+                            </button>
+                            <button onclick="showDeliveryModal()" 
+                                    class="p-3 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors">
+                                ✅ Mark Delivered
+                            </button>
+                            <button onclick="showCancelModal()" 
+                                    class="p-3 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors">
+                                ❌ Cancel Order
+                            </button>
                         </div>
-                        <div class="flex justify-between">
-                            <span>Phone:</span>
-                            <span id="delivery-phone" class="font-bold">+91 76518 37322</span>
-                        </div>
-                        <button onclick="callDeliveryPartner()" 
-                                class="w-full p-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
-                            📞 Call Delivery Partner
-                        </button>
                     </div>
-                </div>
 
-                <!-- Customer Notification -->
-                <div>
-                    <h3 class="font-bold mb-4">📱 Notify Customer</h3>
-                    <div class="space-y-3">
-                        <button onclick="sendCustomerNotification('preparing')" 
-                                class="w-full p-3 bg-yellow-100 text-yellow-700 rounded-lg hover:bg-yellow-200 text-left">
-                            ⏰ Notify: Food is being prepared
-                        </button>
-                        <button onclick="sendCustomerNotification('out-for-delivery')" 
-                                class="w-full p-3 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 text-left">
-                            🛵 Notify: Out for delivery
-                        </button>
-                        <button onclick="sendCustomerNotification('delivered')" 
-                                class="w-full p-3 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 text-left">
-                            ✅ Notify: Order delivered
-                        </button>
+                    <!-- Delivery Partner Info -->
+                    <div class="mb-8">
+                        <h3 class="font-bold mb-4">🚚 Delivery Partner</h3>
+                        <div class="space-y-3">
+                            <div class="flex justify-between">
+                                <span>Name:</span>
+                                <span id="delivery-name" class="font-bold">Nishant</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Phone:</span>
+                                <span id="delivery-phone" class="font-bold">+91 76518 37322</span>
+                            </div>
+                            <button onclick="callDeliveryPartner()" 
+                                    class="w-full p-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors">
+                                📞 Call Delivery Partner
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Customer Notification -->
+                    <div>
+                        <h3 class="font-bold mb-4">📱 Notify Customer</h3>
+                        <div class="space-y-3">
+                            <button onclick="sendCustomerNotification('preparing')" 
+                                    class="w-full p-3 bg-yellow-100 text-yellow-700 rounded-lg hover:bg-yellow-200 transition-colors text-left">
+                                ⏰ Notify: Food is being prepared
+                            </button>
+                            <button onclick="sendCustomerNotification('out-for-delivery')" 
+                                    class="w-full p-3 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors text-left">
+                                🛵 Notify: Out for delivery
+                            </button>
+                            <button onclick="sendCustomerNotification('delivered')" 
+                                    class="w-full p-3 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors text-left">
+                                ✅ Notify: Order delivered
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Delivered Orders History -->
+        <!-- Order History -->
         <div class="mt-8 bg-white rounded-2xl shadow-lg p-6">
-            <h2 class="text-xl font-bold mb-6">📋 Order History (Last 24 Hours)</h2>
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-bold">📋 Order History (Last 24 Hours)</h2>
+                <button onclick="loadOrderHistory()" class="text-blue-500 hover:text-blue-700">
+                    🔄 Refresh
+                </button>
+            </div>
             <div id="order-history" class="space-y-3">
                 <!-- History will load here -->
             </div>
@@ -143,7 +172,7 @@
     </div>
 
     <!-- Delivery Confirmation Modal -->
-    <div id="delivery-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+    <div id="delivery-modal" class="modal-overlay fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
         <div class="bg-white rounded-2xl p-8 max-w-md w-full mx-4">
             <h3 class="text-2xl font-bold mb-6">✅ Confirm Delivery</h3>
             
@@ -155,22 +184,58 @@
                        maxlength="6">
             </div>
             
+            <div class="flex gap-4">
+                <button onclick="confirmDelivery()" 
+                        class="flex-1 py-3 bg-green-500 text-white font-bold rounded-xl hover:bg-green-600 transition-colors">
+                    ✅ Confirm Delivery
+                </button>
+                <button onclick="closeDeliveryModal()" 
+                        class="flex-1 py-3 bg-gray-300 text-gray-700 rounded-xl hover:bg-gray-400 transition-colors">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cancel Order Modal -->
+    <div id="cancel-modal" class="modal-overlay fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+        <div class="bg-white rounded-2xl p-8 max-w-md w-full mx-4">
+            <h3 class="text-2xl font-bold mb-6">❌ Cancel Order</h3>
+            
             <div class="mb-6">
-                <p class="text-gray-600 mb-2">Delivery Partner Name:</p>
-                <input type="text" id="delivery-partner-name" 
-                       placeholder="Enter name" 
+                <p class="text-red-600 mb-4">Are you sure you want to cancel this order?</p>
+                <p class="text-sm text-gray-600 mb-2">Reason for cancellation (optional):</p>
+                <input type="text" id="cancel-reason" 
+                       placeholder="Enter reason..." 
                        class="w-full p-3 border border-gray-300 rounded-lg">
             </div>
             
             <div class="flex gap-4">
-                <button onclick="confirmDelivery()" 
-                        class="flex-1 py-3 bg-green-500 text-white font-bold rounded-xl hover:bg-green-600">
-                    ✅ Confirm
+                <button onclick="confirmCancel()" 
+                        class="flex-1 py-3 bg-red-500 text-white font-bold rounded-xl hover:bg-red-600 transition-colors">
+                    ❌ Confirm Cancel
                 </button>
-                <button onclick="closeDeliveryModal()" 
-                        class="flex-1 py-3 bg-gray-300 text-gray-700 rounded-xl hover:bg-gray-400">
-                    Cancel
+                <button onclick="closeCancelModal()" 
+                        class="flex-1 py-3 bg-gray-300 text-gray-700 rounded-xl hover:bg-gray-400 transition-colors">
+                    Go Back
                 </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Order Details Modal -->
+    <div id="details-modal" class="modal-overlay fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+        <div class="bg-white rounded-2xl p-8 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-2xl font-bold">📋 Complete Order Details</h3>
+                <button onclick="closeDetailsModal()" 
+                        class="text-gray-500 hover:text-gray-700 text-2xl">
+                    ✕
+                </button>
+            </div>
+            
+            <div id="modal-order-details" class="space-y-6">
+                <!-- Complete order details will load here -->
             </div>
         </div>
     </div>
@@ -204,339 +269,713 @@
         </div>
     </footer>
 
+<script>
+    // CONFIGURATION
+    const MAJDOOR_PIN = "8008";
+    const RESTAURANT_PHONE = "917651837322";
+    const DELIVERY_PHONE = "917651837322";
+    const DELIVERY_NAME = "Nishant";
     
-    <script>
-        const MAJDOOR_PIN = "8008";
-        let currentOrder = null;
-
-        // Load active orders from localStorage
-        function loadActiveOrders() {
-            const orders = JSON.parse(localStorage.getItem('easygo-active-orders')) || [];
-            const container = document.getElementById('pending-orders');
+    // GLOBAL STATE
+    let currentOrder = null;
+    let selectedOrderId = null;
+    
+    // ====== LOAD ACTIVE ORDERS ======
+    function loadActiveOrders() {
+        const orders = JSON.parse(localStorage.getItem('easygo-active-orders')) || [];
+        const container = document.getElementById('pending-orders');
+        const countElement = document.getElementById('active-count');
+        
+        countElement.textContent = orders.length;
+        
+        if (orders.length === 0) {
+            container.innerHTML = `
+                <div class="text-center py-12 text-gray-500">
+                    <div class="text-5xl mb-4">📭</div>
+                    <p class="text-lg font-medium">No active orders</p>
+                    <p class="text-sm mt-2">New orders will appear here automatically</p>
+                </div>
+            `;
+            document.getElementById('order-details-section').classList.add('hidden');
+            return;
+        }
+        
+        let html = '';
+        orders.forEach(order => {
+            const statusColors = {
+                'pending': 'status-pending',
+                'preparing': 'status-preparing',
+                'out-for-delivery': 'status-preparing',
+                'delivered': 'status-delivered',
+                'cancelled': 'status-cancelled'
+            };
             
-            if (orders.length === 0) {
-                container.innerHTML = `
-                    <div class="text-center py-8 text-gray-500">
-                        <div class="text-4xl mb-4">📭</div>
-                        <p>No active orders</p>
+            const statusIcons = {
+                'pending': '⏳',
+                'preparing': '👨‍🍳',
+                'out-for-delivery': '🛵',
+                'delivered': '✅',
+                'cancelled': '❌'
+            };
+            
+            const statusTexts = {
+                'pending': 'Pending',
+                'preparing': 'Preparing',
+                'out-for-delivery': 'Out for Delivery',
+                'delivered': 'Delivered',
+                'cancelled': 'Cancelled'
+            };
+            
+            const time = new Date(order.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            
+            html += `
+                <div class="order-card ${statusColors[order.status] || 'status-pending'} bg-white p-4 rounded-xl shadow cursor-pointer"
+                     onclick="selectOrder('${order.orderId}', this)">
+                    <div class="flex justify-between items-start">
+                        <div class="flex-1">
+                            <div class="flex items-center gap-2 mb-2">
+                                <span class="text-xl">${statusIcons[order.status] || '📦'}</span>
+                                <p class="font-bold text-lg">Order #${order.orderId}</p>
+                                <span class="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs font-medium">
+                                    ${order.deliveryMode === 'delivery' ? '🛵 Delivery' : '🏪 Takeaway'}
+                                </span>
+                            </div>
+                            <div class="grid grid-cols-2 gap-2 mb-3">
+                                <div>
+                                    <p class="text-sm text-gray-600">Customer</p>
+                                    <p class="font-medium">${order.customerName}</p>
+                                </div>
+                                <div>
+                                    <p class="text-sm text-gray-600">Phone</p>
+                                    <p class="font-medium">${order.customerPhone}</p>
+                                </div>
+                            </div>
+                            <p class="text-sm text-gray-600 mb-1">Items: ${order.items.length} item(s)</p>
+                            <p class="text-sm text-gray-600 truncate">📍 ${order.address.substring(0, 60)}...</p>
+                        </div>
+                        <div class="text-right ml-4">
+                            <p class="text-xl font-bold text-gray-900">₹${order.totalAmount}</p>
+                            <p class="text-sm font-medium ${order.status === 'pending' ? 'text-yellow-600' : 
+                                                          order.status === 'preparing' ? 'text-blue-600' :
+                                                          order.status === 'out-for-delivery' ? 'text-purple-600' :
+                                                          order.status === 'delivered' ? 'text-green-600' : 'text-red-600'}">
+                                ${statusTexts[order.status] || 'Pending'}
+                            </p>
+                            <p class="text-xs text-gray-500 mt-2">${time}</p>
+                        </div>
                     </div>
-                `;
-                return;
+                    <div class="mt-3 pt-3 border-t border-gray-100 flex justify-between items-center">
+                        <button onclick="event.stopPropagation(); showOrderDetails('${order.orderId}')" 
+                                class="text-sm text-blue-600 hover:text-blue-800 font-medium">
+                            📋 View Details
+                        </button>
+                        <div class="flex gap-2">
+                            <span class="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded">
+                                OTP: ${order.otp || '000000'}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+        
+        container.innerHTML = html;
+        
+        // Select first order by default
+        if (orders.length > 0 && !selectedOrderId) {
+            selectOrder(orders[0].orderId, container.querySelector('.order-card'));
+        } else if (selectedOrderId) {
+            // Reselect previously selected order
+            const orderElement = container.querySelector(`[onclick*="${selectedOrderId}"]`);
+            if (orderElement) {
+                selectOrder(selectedOrderId, orderElement);
+            } else {
+                selectOrder(orders[0].orderId, container.querySelector('.order-card'));
             }
-            
-            let html = '';
-            orders.forEach(order => {
-                const statusColors = {
-                    'pending': 'bg-yellow-100 text-yellow-800',
-                    'preparing': 'bg-blue-100 text-blue-800',
-                    'out-for-delivery': 'bg-purple-100 text-purple-800',
-                    'delivered': 'bg-green-100 text-green-800',
-                    'cancelled': 'bg-red-100 text-red-800'
-                };
+        }
+    }
+    
+    // ====== SELECT ORDER ======
+    function selectOrder(orderId, element = null) {
+        selectedOrderId = orderId;
+        const orders = JSON.parse(localStorage.getItem('easygo-active-orders')) || [];
+        currentOrder = orders.find(order => order.orderId === orderId);
+        
+        if (!currentOrder) return;
+        
+        // Update UI selection
+        document.querySelectorAll('.order-card').forEach(card => {
+            card.classList.remove('ring-2', 'ring-blue-500', 'ring-offset-2');
+        });
+        
+        if (element) {
+            element.classList.add('ring-2', 'ring-blue-500', 'ring-offset-2');
+        }
+        
+        // Show order details section
+        const detailsSection = document.getElementById('order-details-section');
+        const detailsContainer = document.getElementById('selected-order-details');
+        
+        detailsSection.classList.remove('hidden');
+        
+        // Update delivery info
+        document.getElementById('delivery-name').textContent = DELIVERY_NAME;
+        document.getElementById('delivery-phone').textContent = `+91 76518 37322`;
+        
+        // Display order details
+        let detailsHTML = `
+            <div class="space-y-4">
+                <div class="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                    <div class="grid grid-cols-2 gap-4 mb-3">
+                        <div>
+                            <p class="text-sm text-blue-600">Order ID</p>
+                            <p class="font-bold">${currentOrder.orderId}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-blue-600">Payment ID</p>
+                            <p class="font-medium text-sm">${currentOrder.razorpayPaymentId || 'N/A'}</p>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <p class="text-sm text-blue-600">Customer</p>
+                            <p class="font-bold">${currentOrder.customerName}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-blue-600">Phone</p>
+                            <p class="font-bold">${currentOrder.customerPhone}</p>
+                        </div>
+                    </div>
+                </div>
                 
-                html += `
-                    <div class="order-card ${statusColors[order.status]} p-4 rounded-xl cursor-pointer"
-                         onclick="selectOrder('${order.orderId}')">
-                        <div class="flex justify-between items-center">
+                <div class="bg-gray-50 border border-gray-200 rounded-xl p-4">
+                    <p class="font-bold mb-2">📦 Order Items (${currentOrder.items.length})</p>
+                    <div class="space-y-2 max-h-40 overflow-y-auto">
+        `;
+        
+        currentOrder.items.forEach(item => {
+            detailsHTML += `
+                <div class="flex justify-between items-center py-2 border-b border-gray-100 last:border-0">
+                    <div>
+                        <p class="font-medium">${item.name}</p>
+                        <p class="text-sm text-gray-600">${item.quantity} × ${item.pack || 'Standard'}</p>
+                    </div>
+                    <span class="font-bold">₹${parseFloat(item.total || item.price || 0).toFixed(2)}</span>
+                </div>
+            `;
+        });
+        
+        detailsHTML += `
+                    </div>
+                </div>
+                
+                <div class="bg-green-50 border border-green-200 rounded-xl p-4">
+                    <p class="font-bold mb-2">💰 Payment Details</p>
+                    <div class="space-y-2">
+                        <div class="flex justify-between">
+                            <span>Total Amount:</span>
+                            <span class="font-bold text-green-600">₹${currentOrder.totalAmount}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Payment Method:</span>
+                            <span class="font-medium">${currentOrder.paymentMethod || 'Razorpay (Online)'}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Delivery Type:</span>
+                            <span class="font-medium">${currentOrder.deliveryMode === 'delivery' ? '🛵 Home Delivery' : '🏪 Takeaway'}</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
+                    <p class="font-bold mb-2">📍 ${currentOrder.deliveryMode === 'delivery' ? 'Delivery Address' : 'Pickup Details'}</p>
+                    <p class="text-sm">${currentOrder.address}</p>
+                    <p class="text-sm text-gray-600 mt-2">📅 Ordered: ${new Date(currentOrder.timestamp).toLocaleString()}</p>
+                </div>
+                
+                <div class="bg-purple-50 border border-purple-200 rounded-xl p-4">
+                    <p class="font-bold mb-2">🔐 Verification OTP</p>
+                    <p class="text-3xl font-bold text-center text-purple-600">${currentOrder.otp || '000000'}</p>
+                    <p class="text-sm text-center text-gray-600 mt-2">Share this OTP with delivery partner</p>
+                </div>
+            </div>
+        `;
+        
+        detailsContainer.innerHTML = detailsHTML;
+    }
+    
+    // ====== SHOW COMPLETE ORDER DETAILS ======
+    function showOrderDetails(orderId) {
+        const orders = JSON.parse(localStorage.getItem('easygo-active-orders')) || [];
+        const order = orders.find(o => o.orderId === orderId) || 
+                      JSON.parse(localStorage.getItem('easygo-order-history') || '[]').find(o => o.orderId === orderId);
+        
+        if (!order) return;
+        
+        const modal = document.getElementById('details-modal');
+        const container = document.getElementById('modal-order-details');
+        
+        let detailsHTML = `
+            <div class="space-y-6">
+                <!-- Order Header -->
+                <div class="bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-xl p-6">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h4 class="text-2xl font-bold">Order #${order.orderId}</h4>
+                            <p class="text-blue-100">${new Date(order.timestamp).toLocaleString()}</p>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-3xl font-bold">₹${order.totalAmount}</p>
+                            <p class="text-blue-100">${order.paymentMethod || 'Razorpay (Online)'}</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Customer Details -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-white border border-gray-200 rounded-xl p-5">
+                        <h5 class="font-bold text-lg mb-4">👤 Customer Information</h5>
+                        <div class="space-y-3">
                             <div>
-                                <p class="font-bold">Order #${order.orderId}</p>
-                                <p class="text-sm">${order.customerName} | ${order.customerPhone}</p>
+                                <p class="text-sm text-gray-600">Full Name</p>
+                                <p class="font-medium">${order.customerName}</p>
                             </div>
-                            <div class="text-right">
-                                <p class="font-bold">₹${order.totalAmount}</p>
-                                <p class="text-sm">${order.status.toUpperCase()}</p>
+                            <div>
+                                <p class="text-sm text-gray-600">Phone Number</p>
+                                <p class="font-medium">${order.customerPhone}</p>
                             </div>
-                        </div>
-                        <div class="mt-2 text-sm">
-                            <p>📍 ${order.address.substring(0, 50)}...</p>
-                            <p>🕐 ${new Date(order.timestamp).toLocaleTimeString()}</p>
+                            <div>
+                                <p class="text-sm text-gray-600">Order Type</p>
+                                <p class="font-medium">${order.deliveryMode === 'delivery' ? '🛵 Home Delivery' : '🏪 Takeaway'}</p>
+                            </div>
                         </div>
                     </div>
-                `;
-            });
-            
-            container.innerHTML = html;
-            
-            // Load first order by default
-            if (orders.length > 0) {
-                selectOrder(orders[0].orderId);
-            }
-        }
-        
-        function selectOrder(orderId) {
-            const orders = JSON.parse(localStorage.getItem('easygo-active-orders')) || [];
-            currentOrder = orders.find(order => order.orderId === orderId);
-            
-            if (currentOrder) {
-                // Update UI to show selected order
-                document.querySelectorAll('.order-card').forEach(card => {
-                    card.classList.remove('ring-2', 'ring-green-500');
-                });
-                event.currentTarget.classList.add('ring-2', 'ring-green-500');
+                    
+                    <div class="bg-white border border-gray-200 rounded-xl p-5">
+                        <h5 class="font-bold text-lg mb-4">📍 ${order.deliveryMode === 'delivery' ? 'Delivery Address' : 'Pickup Location'}</h5>
+                        <div class="space-y-3">
+                            <div>
+                                <p class="text-sm text-gray-600">Address</p>
+                                <p class="font-medium">${order.address}</p>
+                            </div>
+                            ${order.deliveryMode === 'delivery' ? `
+                                <div>
+                                    <p class="text-sm text-gray-600">Delivery Partner</p>
+                                    <p class="font-medium">${order.deliveryPartner || DELIVERY_NAME}</p>
+                                </div>
+                                <div>
+                                    <p class="text-sm text-gray-600">Partner Contact</p>
+                                    <p class="font-medium">${order.deliveryPartnerPhone || `+91 ${DELIVERY_PHONE.substring(2)}`}</p>
+                                </div>
+                            ` : `
+                                <div>
+                                    <p class="text-sm text-gray-600">Pickup Time</p>
+                                    <p class="font-medium">6:00 PM - 10:00 PM</p>
+                                </div>
+                            `}
+                        </div>
+                    </div>
+                </div>
                 
-                // Update delivery info
-                document.getElementById('delivery-name').textContent = currentOrder.deliveryPartner || 'Nishant';
-                document.getElementById('delivery-phone').textContent = currentOrder.deliveryPhone || '+91 76518 37322';
+                <!-- Order Items -->
+                <div class="bg-white border border-gray-200 rounded-xl p-5">
+                    <h5 class="font-bold text-lg mb-4">📦 Order Items (${order.items.length})</h5>
+                    <div class="space-y-3">
+        `;
+        
+        let subtotal = 0;
+        order.items.forEach(item => {
+            const itemTotal = parseFloat(item.total || item.price || 0) * (parseInt(item.quantity) || 1);
+            subtotal += itemTotal;
+            
+            detailsHTML += `
+                <div class="flex justify-between items-center py-3 border-b border-gray-100 last:border-0">
+                    <div class="flex-1">
+                        <p class="font-medium">${item.name}</p>
+                        <div class="flex gap-4 mt-1">
+                            <span class="text-sm text-gray-600">Qty: ${item.quantity || 1}</span>
+                            <span class="text-sm text-gray-600">Pack: ${item.pack || 'Standard'}</span>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <p class="font-bold">₹${itemTotal.toFixed(2)}</p>
+                        <p class="text-sm text-gray-600">₹${(itemTotal / (parseInt(item.quantity) || 1)).toFixed(2)} each</p>
+                    </div>
+                </div>
+            `;
+        });
+        
+        detailsHTML += `
+                    </div>
+                </div>
+                
+                <!-- Payment Breakdown -->
+                <div class="bg-white border border-gray-200 rounded-xl p-5">
+                    <h5 class="font-bold text-lg mb-4">💰 Payment Breakdown</h5>
+                    <div class="space-y-3">
+                        <div class="flex justify-between">
+                            <span>Food Items Total:</span>
+                            <span>₹${subtotal.toFixed(2)}</span>
+                        </div>
+                        ${order.deliveryMode === 'delivery' ? `
+                            <div class="flex justify-between">
+                                <span>Delivery Charge:</span>
+                                <span>₹49.00</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>GST on Delivery (18%):</span>
+                                <span>₹8.82</span>
+                            </div>
+                        ` : ''}
+                        <div class="flex justify-between">
+                            <span>GST on Food (5%):</span>
+                            <span>₹${(subtotal * 0.05).toFixed(2)}</span>
+                        </div>
+                        <div class="flex justify-between text-lg font-bold pt-3 border-t border-gray-300">
+                            <span>Total Amount:</span>
+                            <span class="text-green-600">₹${order.totalAmount}</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Verification Info -->
+                <div class="bg-white border border-gray-200 rounded-xl p-5">
+                    <h5 class="font-bold text-lg mb-4">🔐 Verification Information</h5>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <p class="text-sm text-gray-600 mb-2">Order OTP</p>
+                            <p class="text-3xl font-bold text-center text-purple-600 bg-purple-50 p-4 rounded-lg">${order.otp || '000000'}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-600 mb-2">Payment ID</p>
+                            <p class="font-medium text-center bg-gray-50 p-4 rounded-lg break-all">${order.razorpayPaymentId || 'N/A'}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        container.innerHTML = detailsHTML;
+        modal.classList.remove('hidden');
+    }
+    
+    // ====== UPDATE ORDER STATUS ======
+    function updateOrderStatus(status) {
+        if (!currentOrder) {
+            alert('Please select an order first');
+            return;
+        }
+        
+        const statusTexts = {
+            'preparing': 'Preparing',
+            'out-for-delivery': 'Out for Delivery',
+            'delivered': 'Delivered',
+            'cancelled': 'Cancelled'
+        };
+        
+        if (!confirm(`Change order status to "${statusTexts[status]}"?`)) {
+            return;
+        }
+        
+        // Update active orders
+        let activeOrders = JSON.parse(localStorage.getItem('easygo-active-orders')) || [];
+        const orderIndex = activeOrders.findIndex(o => o.orderId === currentOrder.orderId);
+        
+        if (orderIndex > -1) {
+            activeOrders[orderIndex].status = status;
+            activeOrders[orderIndex].updatedAt = new Date().toISOString();
+            localStorage.setItem('easygo-active-orders', JSON.stringify(activeOrders));
+        }
+        
+        // Update order history if delivered or cancelled
+        if (status === 'delivered' || status === 'cancelled') {
+            let history = JSON.parse(localStorage.getItem('easygo-order-history') || '[]');
+            const orderToMove = activeOrders[orderIndex];
+            
+            if (orderToMove) {
+                orderToMove.completedAt = new Date().toISOString();
+                history.push(orderToMove);
+                localStorage.setItem('easygo-order-history', JSON.stringify(history));
+                
+                // Remove from active orders
+                activeOrders.splice(orderIndex, 1);
+                localStorage.setItem('easygo-active-orders', JSON.stringify(activeOrders));
             }
         }
         
-        function updateStatus(status) {
-            if (!currentOrder) {
-                alert('Please select an order first');
-                return;
-            }
+        // Send WhatsApp notification to customer (background)
+        sendCustomerNotification(status);
+        
+        // Reload UI
+        loadActiveOrders();
+        loadOrderHistory();
+        
+        alert(`✅ Order status updated to: ${statusTexts[status]}`);
+    }
+    
+    // ====== SEND WHATSAPP NOTIFICATION (Background) ======
+    function sendCustomerNotification(status) {
+        if (!currentOrder) return;
+        
+        const messages = {
+            'preparing': `👨‍🍳 *EasyGo Order Update* 👨‍🍳%0A%0AYour order #${currentOrder.orderId} is being prepared.%0AEstimated ready time: 15-20 minutes.%0A%0AThank you for choosing EasyGo!`,
+            'out-for-delivery': `🛵 *EasyGo Order Update* 🛵%0A%0AYour order #${currentOrder.orderId} is out for delivery!%0ADelivery partner: ${DELIVERY_NAME}%0AEstimated arrival: 25-30 minutes.%0A%0APlease keep your OTP ready for delivery confirmation.`,
+            'delivered': `✅ *EasyGo Order Update* ✅%0A%0AYour order #${currentOrder.orderId} has been delivered!%0A%0APlease rate your experience:%0Ahttps://www.google.com/maps/place/EasyGo/@22.7767506,75.9581962,17z`
+        };
+        
+        if (messages[status]) {
+            // Create invisible iframe for background WhatsApp
+            const iframe = document.createElement('iframe');
+            iframe.style.display = 'none';
+            iframe.src = `https://web.whatsapp.com/send?phone=${currentOrder.customerPhone}&text=${messages[status]}`;
+            document.body.appendChild(iframe);
             
-            currentOrder.status = status;
-            currentOrder.updatedAt = new Date().toISOString();
-            
-            // Update localStorage
-            const orders = JSON.parse(localStorage.getItem('easygo-active-orders')) || [];
-            const index = orders.findIndex(o => o.orderId === currentOrder.orderId);
-            if (index > -1) {
-                orders[index] = currentOrder;
-                localStorage.setItem('easygo-active-orders', JSON.stringify(orders));
-            }
-            
-            // Notify customer via WhatsApp
-            sendCustomerNotification(status);
-            
-            // Reload orders
-            loadActiveOrders();
-            alert(`Order status updated to: ${status}`);
+            // Remove iframe after 2 seconds
+            setTimeout(() => {
+                if (iframe.parentNode) {
+                    iframe.parentNode.removeChild(iframe);
+                }
+            }, 2000);
+        }
+    }
+    
+    // ====== DELIVERY CONFIRMATION ======
+    function showDeliveryModal() {
+        if (!currentOrder) {
+            alert('Please select an order first');
+            return;
         }
         
-        function markAsDelivered() {
-            if (!currentOrder) {
-                alert('Please select an order first');
-                return;
-            }
-            
-            // Show delivery confirmation modal
-            document.getElementById('delivery-modal').classList.remove('hidden');
+        document.getElementById('delivery-modal').classList.remove('hidden');
+    }
+    
+    function confirmDelivery() {
+        const otp = document.getElementById('delivery-otp').value;
+        
+        if (!otp || otp.length !== 6) {
+            alert('Please enter valid 6-digit OTP');
+            return;
         }
         
-        function confirmDelivery() {
-            const otp = document.getElementById('delivery-otp').value;
-            const partnerName = document.getElementById('delivery-partner-name').value;
-            
-            if (!otp || otp.length !== 6) {
-                alert('Please enter valid 6-digit OTP');
-                return;
+        // Verify OTP
+        if (otp !== currentOrder.otp && otp !== '800880') { // 800880 for testing
+            alert('❌ Invalid OTP. Please check and try again.');
+            return;
+        }
+        
+        // Update order status to delivered
+        updateOrderStatus('delivered');
+        
+        // Send delivery confirmation to restaurant
+        sendDeliveryConfirmationToRestaurant(currentOrder, otp);
+        
+        // Close modal
+        closeDeliveryModal();
+    }
+    
+    function sendDeliveryConfirmationToRestaurant(order, otp) {
+        const message = `✅ *DELIVERY CONFIRMED* ✅%0A%0A` +
+                      `Order #${order.orderId} has been delivered.%0A%0A` +
+                      `*Customer:* ${order.customerName}%0A` +
+                      `*Phone:* ${order.customerPhone}%0A` +
+                      `*Amount:* ₹${order.totalAmount}%0A` +
+                      `*Delivery Partner:* ${DELIVERY_NAME}%0A` +
+                      `*OTP Verified:* ${otp}%0A` +
+                      `*Time:* ${new Date().toLocaleTimeString()}`;
+        
+        // Background WhatsApp
+        const iframe = document.createElement('iframe');
+        iframe.style.display = 'none';
+        iframe.src = `https://web.whatsapp.com/send?phone=${RESTAURANT_PHONE}&text=${message}`;
+        document.body.appendChild(iframe);
+        
+        setTimeout(() => {
+            if (iframe.parentNode) {
+                iframe.parentNode.removeChild(iframe);
             }
+        }, 2000);
+    }
+    
+    function closeDeliveryModal() {
+        document.getElementById('delivery-modal').classList.add('hidden');
+        document.getElementById('delivery-otp').value = '';
+    }
+    
+    // ====== ORDER CANCELLATION ======
+    function showCancelModal() {
+        if (!currentOrder) {
+            alert('Please select an order first');
+            return;
+        }
+        
+        document.getElementById('cancel-modal').classList.remove('hidden');
+    }
+    
+    function confirmCancel() {
+        const reason = document.getElementById('cancel-reason').value;
+        
+        // Send cancellation notification
+        const cancelMessage = `❌ *ORDER CANCELLED* ❌%0A%0A` +
+                            `We're sorry, but your order #${currentOrder.orderId} has been cancelled.%0A%0A` +
+                            `*Refund Information:*%0AYour payment of ₹${currentOrder.totalAmount} will be refunded within 5 working days.%0A%0A` +
+                            `Reason: ${reason || 'Not specified'}%0A%0A` +
+                            `For any queries, contact: 76518 37322`;
+        
+        // Background WhatsApp to customer
+        const iframe1 = document.createElement('iframe');
+        iframe1.style.display = 'none';
+        iframe1.src = `https://web.whatsapp.com/send?phone=${currentOrder.customerPhone}&text=${cancelMessage}`;
+        document.body.appendChild(iframe1);
+        
+        // Background WhatsApp to restaurant
+        const restaurantMessage = `❌ *ORDER CANCELLED* ❌%0A%0A` +
+                                `Order #${currentOrder.orderId} has been cancelled.%0A%0A` +
+                                `*Customer:* ${currentOrder.customerName}%0A` +
+                                `*Phone:* ${currentOrder.customerPhone}%0A` +
+                                `*Amount to Refund:* ₹${currentOrder.totalAmount}%0A` +
+                                `*Reason:* ${reason || 'Not specified'}%0A` +
+                                `*Time:* ${new Date().toLocaleTimeString()}`;
+        
+        const iframe2 = document.createElement('iframe');
+        iframe2.style.display = 'none';
+        iframe2.src = `https://web.whatsapp.com/send?phone=${RESTAURANT_PHONE}&text=${restaurantMessage}`;
+        document.body.appendChild(iframe2);
+        
+        setTimeout(() => {
+            if (iframe1.parentNode) iframe1.parentNode.removeChild(iframe1);
+            if (iframe2.parentNode) iframe2.parentNode.removeChild(iframe2);
+        }, 2000);
+        
+        // Update order status
+        updateOrderStatus('cancelled');
+        
+        // Close modal
+        closeCancelModal();
+    }
+    
+    function closeCancelModal() {
+        document.getElementById('cancel-modal').classList.add('hidden');
+        document.getElementById('cancel-reason').value = '';
+    }
+    
+    // ====== LOAD ORDER HISTORY ======
+    function loadOrderHistory() {
+        const history = JSON.parse(localStorage.getItem('easygo-order-history') || '[]');
+        const container = document.getElementById('order-history');
+        
+        // Filter last 24 hours
+        const now = new Date();
+        const oneDayAgo = new Date(now.getTime() - (24 * 60 * 60 * 1000));
+        
+        const recentHistory = history.filter(order => {
+            const orderTime = new Date(order.completedAt || order.timestamp);
+            return orderTime > oneDayAgo;
+        }).reverse();
+        
+        if (recentHistory.length === 0) {
+            container.innerHTML = '<p class="text-center py-8 text-gray-500">No orders in the last 24 hours</p>';
+            return;
+        }
+        
+        let html = '';
+        recentHistory.forEach(order => {
+            const time = new Date(order.completedAt || order.timestamp).toLocaleTimeString([], { 
+                hour: '2-digit', 
+                minute: '2-digit' 
+            });
+            const date = new Date(order.completedAt || order.timestamp).toLocaleDateString();
             
-            // Verify OTP (in real app, check against customer's OTP)
-            const customerOTP = localStorage.getItem('easygo-otp') || '';
-            if (otp !== customerOTP && otp !== '800880') { // 123456 for testing
-                alert('❌ Invalid OTP. Please check and try again.');
-                return;
-            }
+            html += `
+                <div class="flex justify-between items-center p-4 bg-gray-50 rounded-xl hover:bg-gray-100 cursor-pointer transition-colors"
+                     onclick="showOrderDetails('${order.orderId}')">
+                    <div class="flex-1">
+                        <div class="flex items-center gap-2 mb-1">
+                            <p class="font-bold">${order.customerName}</p>
+                            <span class="text-xs px-2 py-1 rounded ${
+                                order.status === 'delivered' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                            }">
+                                ${order.status === 'delivered' ? '✅ Delivered' : '❌ Cancelled'}
+                            </span>
+                        </div>
+                        <p class="text-sm text-gray-600">Order #${order.orderId} • ${order.items.length} item(s)</p>
+                        <p class="text-xs text-gray-500 mt-1">${date} ${time}</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="font-bold text-lg">₹${order.totalAmount}</p>
+                        <p class="text-sm text-gray-600">${order.deliveryMode === 'delivery' ? '🛵' : '🏪'}</p>
+                    </div>
+                </div>
+            `;
+        });
+        
+        container.innerHTML = html;
+    }
+    
+    // ====== UTILITY FUNCTIONS ======
+    function callDeliveryPartner() {
+        window.open(`tel:${DELIVERY_PHONE}`, '_blank');
+    }
+    
+    function closeDetailsModal() {
+        document.getElementById('details-modal').classList.add('hidden');
+    }
+    
+    // ====== ADMIN AUTHENTICATION ======
+    function loginAdmin() {
+        const pin = document.getElementById('admin-pin').value;
+        if (pin === MAJDOOR_PIN) {
+            localStorage.setItem('easygo-admin-logged-in', 'true');
             
-            // Update order status
-            currentOrder.status = 'delivered';
-            currentOrder.deliveredAt = new Date().toISOString();
-            currentOrder.deliveryPartner = partnerName;
-            currentOrder.deliveryOTP = otp;
+            document.getElementById('login-section').classList.add('hidden');
+            document.getElementById('dashboard-section').classList.remove('hidden');
             
-            // Move to order history
-            const activeOrders = JSON.parse(localStorage.getItem('easygo-active-orders')) || [];
-            const history = JSON.parse(localStorage.getItem('easygo-order-history')) || [];
-            
-            // Remove from active
-            const updatedActive = activeOrders.filter(o => o.orderId !== currentOrder.orderId);
-            
-            // Add to history
-            history.push(currentOrder);
-            
-            // Save
-            localStorage.setItem('easygo-active-orders', JSON.stringify(updatedActive));
-            localStorage.setItem('easygo-order-history', JSON.stringify(history));
-            
-            // Send WhatsApp notification to customer
-            sendDeliveryConfirmationToCustomer(currentOrder);
-            
-            // Send WhatsApp notification to restaurant
-            sendDeliveryConfirmationToRestaurant(currentOrder, partnerName, otp);
-            
-            // Close modal
-            closeDeliveryModal();
-            
-            // Reload
+            // Load data
             loadActiveOrders();
             loadOrderHistory();
             
-            alert('✅ Order marked as delivered successfully!');
-        }
-        
-        function sendDeliveryConfirmationToCustomer(order) {
-            const message = `✅ *ORDER DELIVERED* ✅%0A%0A` +
-                          `Your EasyGo order has been delivered!%0A%0A` +
-                          `*Order ID:* ${order.orderId}%0A` +
-                          `*Amount:* ₹${order.totalAmount}%0A` +
-                          `*Delivery Partner:* ${order.deliveryPartner}%0A` +
-                          `*OTP Verified:* ${order.deliveryOTP}%0A%0A` +
-                          `📦 *Items:*%0A`;
+            // Update time
+            updateTime();
+            setInterval(updateTime, 1000);
             
-            order.items.forEach(item => {
-                message += `• ${item.name} × ${item.quantity}%0A`;
-            });
-            
-            message += `%0A📍 *Delivery Address:*%0A${order.address}%0A%0A` +
-                      `⏰ *Delivered At:* ${new Date().toLocaleTimeString()}%0A%0A` +
-                      `🙏 *Please rate your experience:*%0A` +
-                      `https://www.google.com/maps/place/EasyGo/@22.7767506,75.9581962,17z`;
-            
-            window.open(`https://wa.me/${order.customerPhone}?text=${message}`, '_blank');
-        }
-        
-        function sendDeliveryConfirmationToRestaurant(order, partnerName, otp) {
-            const message = `✅ *DELIVERY CONFIRMED* ✅%0A%0A` +
-                          `Order #${order.orderId} has been delivered.%0A%0A` +
-                          `*Customer:* ${order.customerName}%0A` +
-                          `*Phone:* ${order.customerPhone}%0A` +
-                          `*Amount:* ₹${order.totalAmount}%0A` +
-                          `*Delivery Partner:* ${partnerName}%0A` +
-                          `*OTP Verified:* ${otp}%0A` +
-                          `*Time:* ${new Date().toLocaleTimeString()}%0A%0A` +
-                          `📍 *Location Link:*%0A${order.locationLink}`;
-            
-            window.open(`https://wa.me/917651837322?text=${message}`, '_blank');
-        }
-        
-        function sendCustomerNotification(status) {
-            if (!currentOrder) return;
-            
-            const messages = {
-                'preparing': `👨‍🍳 *EasyGo Order Update* 👨‍🍳%0A%0AYour order #${currentOrder.orderId} is being prepared.%0AEstimated ready time: 15-20 minutes.%0A%0AThank you for choosing EasyGo!`,
-                'out-for-delivery': `🛵 *EasyGo Order Update* 🛵%0A%0AYour order #${currentOrder.orderId} is out for delivery!%0ADelivery partner: EasyGo Rider%0AEstimated arrival: 25-30 minutes.%0A%0APlease keep your OTP ready for delivery confirmation.`,
-                'delivered': `✅ *EasyGo Order Update* ✅%0A%0AYour order #${currentOrder.orderId} has been delivered!%0A%0APlease rate your experience:%0Ahttps://www.google.com/maps/place/EasyGo/@22.7767506,75.9581962,17z`
-            };
-            
-            if (messages[status]) {
-                window.open(`https://wa.me/${currentOrder.customerPhone}?text=${messages[status]}`, '_blank');
-            }
-        }
-        
-        function markAsCancelled() {
-            if (!currentOrder) return;
-            
-            if (confirm('Are you sure you want to cancel this order?')) {
-                currentOrder.status = 'cancelled';
-                currentOrder.cancelledAt = new Date().toISOString();
-                
-                // Send cancellation notification to customer
-                const cancelMessage = `❌ *ORDER CANCELLED* ❌%0A%0A` +
-                                    `We're sorry, but your order #${currentOrder.orderId} has been cancelled.%0A%0A` +
-                                    `*Refund Information:*%0AYour payment of ₹${currentOrder.totalAmount} will be refunded within 5 working days.%0A%0A` +
-                                    `For any queries, contact: 76518 37322`;
-                
-                window.open(`https://wa.me/${currentOrder.customerPhone}?text=${cancelMessage}`, '_blank');
-                
-                // Send to restaurant
-                const restaurantMessage = `❌ *ORDER CANCELLED* ❌%0A%0A` +
-                                        `Order #${currentOrder.orderId} has been cancelled.%0A%0A` +
-                                        `*Customer:* ${currentOrder.customerName}%0A` +
-                                        `*Phone:* ${currentOrder.customerPhone}%0A` +
-                                        `*Amount to Refund:* ₹${currentOrder.totalAmount}%0A` +
-                                        `*Time:* ${new Date().toLocaleTimeString()}`;
-                
-                window.open(`https://wa.me/917651837322?text=${restaurantMessage}`, '_blank');
-                
-                // Update localStorage
-                const orders = JSON.parse(localStorage.getItem('easygo-active-orders')) || [];
-                const index = orders.findIndex(o => o.orderId === currentOrder.orderId);
-                if (index > -1) {
-                    orders.splice(index, 1);
-                    localStorage.setItem('easygo-active-orders', JSON.stringify(orders));
-                }
-                
-                // Add to cancelled orders
-                const cancelled = JSON.parse(localStorage.getItem('easygo-cancelled-orders')) || [];
-                cancelled.push(currentOrder);
-                localStorage.setItem('easygo-cancelled-orders', JSON.stringify(cancelled));
-                
-                loadActiveOrders();
-                alert('Order cancelled and notifications sent.');
-            }
-        }
-        
-        function loadOrderHistory() {
-            const history = JSON.parse(localStorage.getItem('easygo-order-history')) || [];
-            const container = document.getElementById('order-history');
-            
-            if (history.length === 0) {
-                container.innerHTML = '<p class="text-gray-500">No orders in history</p>';
-                return;
-            }
-            
-            let html = '';
-            history.slice(-10).reverse().forEach(order => {
-                html += `
-                    <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                        <div>
-                            <p class="font-medium">${order.customerName}</p>
-                            <p class="text-sm text-gray-600">${new Date(order.deliveredAt).toLocaleTimeString()}</p>
-                        </div>
-                        <div class="text-right">
-                            <p class="font-bold">₹${order.totalAmount}</p>
-                            <p class="text-sm text-green-600">✅ Delivered</p>
-                        </div>
-                    </div>
-                `;
-            });
-            
-            container.innerHTML = html;
-        }
-        
-        function callDeliveryPartner() {
-            if (currentOrder && currentOrder.deliveryPhone) {
-                window.open(`tel:${currentOrder.deliveryPhone}`, '_blank');
-            } else {
-                window.open('tel:+919876543210', '_blank');
-            }
-        }
-        
-        function closeDeliveryModal() {
-            document.getElementById('delivery-modal').classList.add('hidden');
-            document.getElementById('delivery-otp').value = '';
-            document.getElementById('delivery-partner-name').value = '';
-        }
-        
-        function loginAdmin() {
-            const pin = document.getElementById('admin-pin').value;
-            if (pin === MAJDOOR_PIN) {
-                document.getElementById('login-section').classList.add('hidden');
-                document.getElementById('dashboard-section').classList.remove('hidden');
-                
-                // Load data
-                loadActiveOrders();
-                loadOrderHistory();
-                
-                // Update time
-                setInterval(() => {
-                    document.getElementById('current-time').textContent = new Date().toLocaleTimeString();
-                }, 1000);
-            } else {
-                alert('Invalid PIN');
-            }
-        }
-        
-        function logoutAdmin() {
-            document.getElementById('login-section').classList.remove('hidden');
-            document.getElementById('dashboard-section').classList.add('hidden');
+            // Auto-refresh orders every 5 seconds
+            setInterval(loadActiveOrders, 5000);
+        } else {
+            alert('Invalid PIN');
             document.getElementById('admin-pin').value = '';
+            document.getElementById('admin-pin').focus();
+        }
+    }
+    
+    function logoutAdmin() {
+        localStorage.removeItem('easygo-admin-logged-in');
+        document.getElementById('login-section').classList.remove('hidden');
+        document.getElementById('dashboard-section').classList.add('hidden');
+        document.getElementById('admin-pin').value = '';
+    }
+    
+    function updateTime() {
+        const now = new Date();
+        document.getElementById('current-time').textContent = 
+            now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    }
+    
+    // ====== INITIALIZATION ======
+    window.addEventListener('DOMContentLoaded', () => {
+        // Check if already logged in
+        const isLoggedIn = localStorage.getItem('easygo-admin-logged-in');
+        if (isLoggedIn === 'true') {
+            document.getElementById('login-section').classList.add('hidden');
+            document.getElementById('dashboard-section').classList.remove('hidden');
+            loadActiveOrders();
+            loadOrderHistory();
+            updateTime();
+            setInterval(updateTime, 1000);
+            setInterval(loadActiveOrders, 5000);
         }
         
-        // Initialize
-        window.addEventListener('DOMContentLoaded', () => {
-            // Check if already logged in (for demo)
-            const isLoggedIn = localStorage.getItem('easygo-admin-logged-in');
-            if (isLoggedIn === 'true') {
-                document.getElementById('login-section').classList.add('hidden');
-                document.getElementById('dashboard-section').classList.remove('hidden');
-                loadActiveOrders();
-                loadOrderHistory();
-            }
-        });
-    </script>
+        // Auto-focus PIN input
+        document.getElementById('admin-pin').focus();
+    });
+</script>
 </body>
 </html>
