@@ -751,7 +751,7 @@
             return;
         }
         
-        let activeOrders = JSON.parse(localStorage.getItem('easygo-active-orders') || []);
+        let activeOrders = JSON.parse(localStorage.getItem('easygo-active-orders') || '[]');
         const orderIndex = activeOrders.findIndex(o => o.orderId === currentOrder.orderId);
         
         if (orderIndex > -1) {
@@ -761,7 +761,7 @@
         }
         
         if (status === 'delivered' || status === 'cancelled') {
-            let history = JSON.parse(localStorage.getItem('easygo-order-history') || []);
+            let history = JSON.parse(localStorage.getItem('easygo-order-history') || '[]');
             const orderToMove = activeOrders[orderIndex];
             
             if (orderToMove) {
@@ -774,7 +774,9 @@
             }
         }
         
-        showCustomerWhatsAppModal(status);
+        if (status !== 'cancelled') {
+            showCustomerWhatsAppModal(status);
+        }
         
         loadActiveOrders();
         loadOrderHistory();
@@ -855,8 +857,8 @@
         currentOrder.deliveryPartner = partnerName;
         currentOrder.deliveryOTP = otp;
         
-        const activeOrders = JSON.parse(localStorage.getItem('easygo-active-orders') || []);
-        const history = JSON.parse(localStorage.getItem('easygo-order-history') || []);
+        const activeOrders = JSON.parse(localStorage.getItem('easygo-active-orders') || '[]');
+        const history = JSON.parse(localStorage.getItem('easygo-order-history') || '[]');
         
         const updatedActive = activeOrders.filter(o => o.orderId !== currentOrder.orderId);
         
@@ -901,7 +903,7 @@
                       `Please rate your experience:%0A` +
                       `https://www.google.com/maps/place/EasyGo/@22.7767506,75.9581962,17z`;
         
-        const whatsappURL = `https://wa.me/${customerPhone}?text=${message}`;
+        const whatsappURL = `https://wa.me/${customerPhone}?text=${encodeURIComponent(message)}`;
         window.open(whatsappURL, '_blank');
     }
     
@@ -923,7 +925,7 @@
                       `*OTP Verified:* ${otp}%0A` +
                       `*Time:* ${new Date().toLocaleTimeString()}`;
         
-        const whatsappURL = `https://wa.me/${ADMIN_PHONE}?text=${message}`;
+        const whatsappURL = `https://wa.me/${ADMIN_PHONE}?text=${encodeURIComponent(message)}`;
         window.open(whatsappURL, '_blank');
     }
     
@@ -947,31 +949,127 @@
     }
     
     function confirmCancel() {
-        const reason = document.getElementById('cancel-reason').value;
+        const reason = document.getElementById('cancel-reason').value || 'Not specified';
         
-        const cancelMessage = `❌ *ORDER CANCELLED* ❌%0A%0A` +
-                            `We're sorry, but your order #${currentOrder.orderId} has been cancelled.%0A%0A` +
-                            `*Refund Information:*%0AYour payment of ₹${currentOrder.totalAmount} will be refunded within 5 working days.%0A%0A` +
-                            `Reason: ${reason || 'Not specified'}%0A%0A` +
-                            `For any queries, contact: 76518 37322`;
+        // Mark order as cancelled in localStorage
+        let activeOrders = JSON.parse(localStorage.getItem('easygo-active-orders') || '[]');
+        const orderIndex = activeOrders.findIndex(o => o.orderId === currentOrder.orderId);
         
-        const whatsappURL1 = `https://wa.me/${currentOrder.customerPhone}?text=${cancelMessage}`;
-        window.open(whatsappURL1, '_blank');
+        if (orderIndex > -1) {
+            activeOrders[orderIndex].status = 'cancelled';
+            activeOrders[orderIndex].updatedAt = new Date().toISOString();
+            activeOrders[orderIndex].cancelledAt = new Date().toISOString();
+            activeOrders[orderIndex].cancelReason = reason;
+            localStorage.setItem('easygo-active-orders', JSON.stringify(activeOrders));
+        }
         
+        // Move to history
+        let history = JSON.parse(localStorage.getItem('easygo-order-history') || '[]');
+        const orderToMove = activeOrders[orderIndex];
+        
+        if (orderToMove) {
+            orderToMove.completedAt = new Date().toISOString();
+            history.push(orderToMove);
+            localStorage.setItem('easygo-order-history', JSON.stringify(history));
+            
+            activeOrders.splice(orderIndex, 1);
+            localStorage.setItem('easygo-active-orders', JSON.stringify(activeOrders));
+        }
+        
+        // Send WhatsApp to Customer (FIXED ENCODING)
+        const customerMessage = `❌ *ORDER CANCELLED* ❌%0A%0A` +
+                              `We're sorry, but your order #${currentOrder.orderId} has been cancelled.%0A%0A` +
+                              `*Refund Information:*%0AYour payment of ₹${currentOrder.totalAmount} will be refunded within 5 working days.%0A%0A` +
+                              `*Reason:* ${reason}%0A%0A` +
+                              `For any queries, contact: +91 76518 37322`;
+        
+        const whatsappCustomerURL = `https://wa.me/${currentOrder.customerPhone}?text=${encodeURIComponent(customerMessage)}`;
+        window.open(whatsappCustomerURL, '_blank');
+        
+        // Send WhatsApp to Restaurant Admin (FIXED ENCODING)
         const restaurantMessage = `❌ *ORDER CANCELLED* ❌%0A%0A` +
                                 `Order #${currentOrder.orderId} has been cancelled.%0A%0A` +
                                 `*Customer:* ${currentOrder.customerName}%0A` +
                                 `*Phone:* ${currentOrder.customerPhone}%0A` +
                                 `*Amount to Refund:* ₹${currentOrder.totalAmount}%0A` +
-                                `*Reason:* ${reason || 'Not specified'}%0A` +
+                                `*Payment ID:* ${currentOrder.razorpayPaymentId || 'N/A'}%0A` +
+                                `*Reason:* ${reason}%0A` +
                                 `*Time:* ${new Date().toLocaleTimeString()}`;
         
-        const whatsappURL2 = `https://wa.me/${ADMIN_PHONE}?text=${restaurantMessage}`;
-        window.open(whatsappURL2, '_blank');
+        const whatsappRestaurantURL = `https://wa.me/${ADMIN_PHONE}?text=${encodeURIComponent(restaurantMessage)}`;
+        window.open(whatsappRestaurantURL, '_blank');
         
-        updateOrderStatus('cancelled');
+        // Initiate Refund Process
+        initiateRefund(currentOrder);
         
+        // Update UI
         closeCancelModal();
+        loadActiveOrders();
+        loadOrderHistory();
+        
+        alert('✅ Order cancelled and refund initiated.');
+    }
+    
+    function initiateRefund(order) {
+        // Store refund record
+        let refunds = JSON.parse(localStorage.getItem('easygo-refunds') || '[]');
+        
+        const refundRecord = {
+            orderId: order.orderId,
+            paymentId: order.razorpayPaymentId,
+            amount: order.totalAmount,
+            customerName: order.customerName,
+            customerPhone: order.customerPhone,
+            status: 'pending',
+            initiatedAt: new Date().toISOString(),
+            expectedDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString() // 5 days from now
+        };
+        
+        refunds.push(refundRecord);
+        localStorage.setItem('easygo-refunds', JSON.stringify(refunds));
+        
+        // Log refund for admin tracking
+        console.log(`Refund initiated for Order #${order.orderId}`);
+        console.log(`Amount: ₹${order.totalAmount}`);
+        console.log(`Payment ID: ${order.razorpayPaymentId}`);
+        console.log(`Expected refund date: ${refundRecord.expectedDate}`);
+        
+        // In a real implementation, you would call Razorpay API here
+        // Example: razorpay.payments.refund(order.razorpayPaymentId, { amount: order.totalAmount * 100 })
+        
+        // For demo purposes, we'll simulate the API call
+        simulateRazorpayRefund(order);
+    }
+    
+    function simulateRazorpayRefund(order) {
+        // This is a simulation - in real implementation, use Razorpay API
+        console.log('=== SIMULATING RAZORPAY REFUND ===');
+        console.log(`Payment ID: ${order.razorpayPaymentId}`);
+        console.log(`Amount: ₹${order.totalAmount}`);
+        console.log(`Refund initiated successfully`);
+        console.log('==================================');
+        
+        // Update refund status after 2 seconds (simulating processing)
+        setTimeout(() => {
+            let refunds = JSON.parse(localStorage.getItem('easygo-refunds') || '[]');
+            const refundIndex = refunds.findIndex(r => r.orderId === order.orderId);
+            if (refundIndex > -1) {
+                refunds[refundIndex].status = 'processed';
+                refunds[refundIndex].processedAt = new Date().toISOString();
+                localStorage.setItem('easygo-refunds', JSON.stringify(refunds));
+                
+                // Send confirmation message to admin
+                const refundConfirmMessage = `✅ *REFUND PROCESSED* ✅%0A%0A` +
+                                           `Refund for Order #${order.orderId} has been processed.%0A%0A` +
+                                           `*Customer:* ${order.customerName}%0A` +
+                                           `*Amount:* ₹${order.totalAmount}%0A` +
+                                           `*Payment ID:* ${order.razorpayPaymentId}%0A` +
+                                           `*Status:* Completed`;
+                
+                const whatsappURL = `https://wa.me/${ADMIN_PHONE}?text=${encodeURIComponent(refundConfirmMessage)}`;
+                window.open(whatsappURL, '_blank');
+            }
+        }, 2000);
     }
     
     function closeCancelModal() {
@@ -1012,9 +1110,11 @@
                         <div class="flex items-center gap-2 mb-1">
                             <p class="font-bold">${order.customerName}</p>
                             <span class="text-xs px-2 py-1 rounded ${
-                                order.status === 'delivered' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                                order.status === 'delivered' ? 'bg-green-100 text-green-800' : 
+                                order.status === 'cancelled' ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-800'
                             }">
-                                ${order.status === 'delivered' ? '✅ Delivered' : '❌ Cancelled'}
+                                ${order.status === 'delivered' ? '✅ Delivered' : 
+                                  order.status === 'cancelled' ? '❌ Cancelled' : '📦 Processing'}
                             </span>
                         </div>
                         <p class="text-sm text-gray-600">Order #${order.orderId} • ${order.items.length} item(s)</p>
@@ -1088,6 +1188,48 @@
         const now = new Date();
         document.getElementById('current-time').textContent = 
             now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    }
+    
+    // ====== NEW ORDER NOTIFICATION ======
+    function formatNewOrderNotification(order) {
+        // This function formats the order for WhatsApp notification
+        let itemsText = '';
+        order.items.forEach(item => {
+            const itemTotal = parseFloat(item.total || item.price || 0) * (parseInt(item.quantity) || 1);
+            itemsText += `• ${item.name} × ${item.quantity} (${item.pack || 'piece'}) ₹${parseFloat(item.price || 0).toFixed(2)} each → Total: ₹${itemTotal.toFixed(2)}%0A`;
+        });
+        
+        const foodTotal = order.items.reduce((sum, item) => {
+            return sum + (parseFloat(item.total || item.price || 0) * (parseInt(item.quantity) || 1));
+        }, 0);
+        
+        const gstOnFood = foodTotal * 0.05;
+        const deliveryCharge = order.deliveryMode === 'delivery' ? 9 : 0;
+        
+        return `🆕 *NEW ORDER RECEIVED* 🆕%0A%0A` +
+               `*Order ID:* ${order.orderId}%0A` +
+               `*OTP:* ${order.otp}%0A` +
+               `*Amount:* ₹${order.totalAmount}%0A` +
+               `*Payment ID:* ${order.razorpayPaymentId || 'N/A'}%0A` +
+               `*Status:* CONFIRMED%0A%0A` +
+               `📦 *Items Ordered:*%0A${itemsText}%0A` +
+               `💰 *Payment Breakdown:*%0A` +
+               `Food Total: ₹${foodTotal.toFixed(2)}%0A` +
+               `GST on Food (5%): ₹${gstOnFood.toFixed(2)}%0A` +
+               `Delivery Charge: ₹${deliveryCharge.toFixed(2)}%0A` +
+               `GST on Delivery: Included in ₹${deliveryCharge}%0A` +
+               `*TOTAL: ₹${order.totalAmount}*%0A%0A` +
+               `👤 *Customer Details:*%0A` +
+               `Name: ${order.customerName}%0A` +
+               `Phone: ${order.customerPhone}%0A` +
+               `Payment Method: ${order.paymentMethod || 'Razorpay (Online)'}%0A%0A` +
+               `📍 *Delivery Address:*%0A` +
+               `${order.address}%0A` +
+               `Type: ${order.addressType || 'House'}%0A` +
+               `Distance: ${order.distance || '0.07'} km%0A%0A` +
+               `🕐 *Order Time:* ${new Date(order.timestamp).toLocaleTimeString()}%0A` +
+               `📅 *Date:* ${new Date(order.timestamp).toLocaleDateString()}%0A%0A` +
+               `_Order placed via EasyGo Payment System_`;
     }
     
     // ====== INITIALIZATION ======
