@@ -184,10 +184,18 @@
                        maxlength="6">
             </div>
             
+            <div class="mb-6">
+                <p class="text-gray-600 mb-2">Delivery Partner Name:</p>
+                <input type="text" id="delivery-partner-name" 
+                       placeholder="Enter name" 
+                       class="w-full p-3 border border-gray-300 rounded-lg"
+                       value="Nishant">
+            </div>
+            
             <div class="flex gap-4">
                 <button onclick="confirmDelivery()" 
                         class="flex-1 py-3 bg-green-500 text-white font-bold rounded-xl hover:bg-green-600 transition-colors">
-                    ✅ Confirm Delivery
+                    ✅ Confirm
                 </button>
                 <button onclick="closeDeliveryModal()" 
                         class="flex-1 py-3 bg-gray-300 text-gray-700 rounded-xl hover:bg-gray-400 transition-colors">
@@ -240,6 +248,77 @@
         </div>
     </div>
 
+    <!-- WhatsApp Notification Modal -->
+    <div id="whatsapp-customer-modal" class="modal-overlay fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+        <div class="bg-white rounded-2xl p-8 max-w-md w-full mx-4">
+            <div class="text-center mb-6">
+                <div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <span class="text-3xl">📱</span>
+                </div>
+                <h3 class="text-2xl font-bold mb-2">Notify Customer</h3>
+                <p class="text-gray-600">Click to send WhatsApp update to customer</p>
+            </div>
+            
+            <div class="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-xl">
+                <p class="font-medium text-blue-800" id="whatsapp-notification-title">Notification</p>
+                <p class="text-sm text-blue-600 mt-2">Customer will receive this message</p>
+            </div>
+            
+            <div class="flex gap-4">
+                <button onclick="sendCustomerWhatsAppNow()" 
+                        class="flex-1 py-3 bg-green-500 text-white font-bold rounded-xl hover:bg-green-600 transition-colors">
+                    📱 Send WhatsApp
+                </button>
+                <button onclick="closeCustomerWhatsAppModal()" 
+                        class="flex-1 py-3 bg-gray-300 text-gray-700 rounded-xl hover:bg-gray-400 transition-colors">
+                    Skip
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delivery WhatsApp Modal -->
+    <div id="whatsapp-delivery-modal" class="modal-overlay fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+        <div class="bg-white rounded-2xl p-8 max-w-md w-full mx-4">
+            <div class="text-center mb-6">
+                <div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <span class="text-3xl">✅</span>
+                </div>
+                <h3 class="text-2xl font-bold mb-2">Delivery Complete!</h3>
+                <p class="text-gray-600">Send delivery confirmation</p>
+            </div>
+            
+            <div class="space-y-4 mb-6">
+                <button onclick="sendDeliveryCustomerWhatsApp()" 
+                        class="w-full p-4 bg-blue-100 text-blue-700 rounded-xl hover:bg-blue-200 transition-colors text-left">
+                    <div class="flex items-center gap-3">
+                        <span class="text-xl">👤</span>
+                        <div>
+                            <p class="font-bold">Notify Customer</p>
+                            <p class="text-sm">Delivery confirmation to customer</p>
+                        </div>
+                    </div>
+                </button>
+                
+                <button onclick="sendDeliveryRestaurantWhatsApp()" 
+                        class="w-full p-4 bg-green-100 text-green-700 rounded-xl hover:bg-green-200 transition-colors text-left">
+                    <div class="flex items-center gap-3">
+                        <span class="text-xl">🏪</span>
+                        <div>
+                            <p class="font-bold">Notify Restaurant</p>
+                            <p class="text-sm">Delivery confirmation to EasyGo</p>
+                        </div>
+                    </div>
+                </button>
+            </div>
+            
+            <button onclick="closeDeliveryWhatsAppModal()" 
+                    class="w-full py-3 bg-gray-300 text-gray-700 rounded-xl hover:bg-gray-400 transition-colors">
+                Done
+            </button>
+        </div>
+    </div>
+
     <!-- Footer -->
     <footer class="bg-gray-900 text-white py-8">
         <div class="max-w-6xl mx-auto px-4">
@@ -272,17 +351,18 @@
 <script>
     // CONFIGURATION
     const MAJDOOR_PIN = "8008";
-    const RESTAURANT_PHONE = "917651837322";
-    const DELIVERY_PHONE = "917651837322";
+    const ADMIN_PHONE = "91765187322"; // Your number
+    const DELIVERY_PHONE = "91765187322";
     const DELIVERY_NAME = "Nishant";
     
     // GLOBAL STATE
     let currentOrder = null;
     let selectedOrderId = null;
+    let whatsappNotificationData = null;
     
     // ====== LOAD ACTIVE ORDERS ======
     function loadActiveOrders() {
-        const orders = JSON.parse(localStorage.getItem('easygo-active-orders')) || [];
+        const orders = JSON.parse(localStorage.getItem('easygo-active-orders') || '[]');
         const container = document.getElementById('pending-orders');
         const countElement = document.getElementById('active-count');
         
@@ -381,11 +461,9 @@
         
         container.innerHTML = html;
         
-        // Select first order by default
         if (orders.length > 0 && !selectedOrderId) {
             selectOrder(orders[0].orderId, container.querySelector('.order-card'));
         } else if (selectedOrderId) {
-            // Reselect previously selected order
             const orderElement = container.querySelector(`[onclick*="${selectedOrderId}"]`);
             if (orderElement) {
                 selectOrder(selectedOrderId, orderElement);
@@ -398,12 +476,11 @@
     // ====== SELECT ORDER ======
     function selectOrder(orderId, element = null) {
         selectedOrderId = orderId;
-        const orders = JSON.parse(localStorage.getItem('easygo-active-orders')) || [];
+        const orders = JSON.parse(localStorage.getItem('easygo-active-orders') || '[]');
         currentOrder = orders.find(order => order.orderId === orderId);
         
         if (!currentOrder) return;
         
-        // Update UI selection
         document.querySelectorAll('.order-card').forEach(card => {
             card.classList.remove('ring-2', 'ring-blue-500', 'ring-offset-2');
         });
@@ -412,17 +489,14 @@
             element.classList.add('ring-2', 'ring-blue-500', 'ring-offset-2');
         }
         
-        // Show order details section
         const detailsSection = document.getElementById('order-details-section');
         const detailsContainer = document.getElementById('selected-order-details');
         
         detailsSection.classList.remove('hidden');
         
-        // Update delivery info
         document.getElementById('delivery-name').textContent = DELIVERY_NAME;
-        document.getElementById('delivery-phone').textContent = `+91 76518 37322`;
+        document.getElementById('delivery-phone').textContent = `+91 ${DELIVERY_PHONE.substring(2)}`;
         
-        // Display order details
         let detailsHTML = `
             <div class="space-y-4">
                 <div class="bg-blue-50 border border-blue-200 rounded-xl p-4">
@@ -506,7 +580,7 @@
     
     // ====== SHOW COMPLETE ORDER DETAILS ======
     function showOrderDetails(orderId) {
-        const orders = JSON.parse(localStorage.getItem('easygo-active-orders')) || [];
+        const orders = JSON.parse(localStorage.getItem('easygo-active-orders') || '[]');
         const order = orders.find(o => o.orderId === orderId) || 
                       JSON.parse(localStorage.getItem('easygo-order-history') || '[]').find(o => o.orderId === orderId);
         
@@ -617,6 +691,10 @@
                             <span>Food Items Total:</span>
                             <span>₹${subtotal.toFixed(2)}</span>
                         </div>
+                        <div class="flex justify-between">
+                            <span>GST on Food (5%):</span>
+                            <span>₹${(subtotal * 0.05).toFixed(2)}</span>
+                        </div>
                         ${order.deliveryMode === 'delivery' ? `
                             <div class="flex justify-between">
                                 <span>Delivery Charge:</span>
@@ -627,10 +705,6 @@
                                 <span>₹8.82</span>
                             </div>
                         ` : ''}
-                        <div class="flex justify-between">
-                            <span>GST on Food (5%):</span>
-                            <span>₹${(subtotal * 0.05).toFixed(2)}</span>
-                        </div>
                         <div class="flex justify-between text-lg font-bold pt-3 border-t border-gray-300">
                             <span>Total Amount:</span>
                             <span class="text-green-600">₹${order.totalAmount}</span>
@@ -677,8 +751,7 @@
             return;
         }
         
-        // Update active orders
-        let activeOrders = JSON.parse(localStorage.getItem('easygo-active-orders')) || [];
+        let activeOrders = JSON.parse(localStorage.getItem('easygo-active-orders') || []);
         const orderIndex = activeOrders.findIndex(o => o.orderId === currentOrder.orderId);
         
         if (orderIndex > -1) {
@@ -687,9 +760,8 @@
             localStorage.setItem('easygo-active-orders', JSON.stringify(activeOrders));
         }
         
-        // Update order history if delivered or cancelled
         if (status === 'delivered' || status === 'cancelled') {
-            let history = JSON.parse(localStorage.getItem('easygo-order-history') || '[]');
+            let history = JSON.parse(localStorage.getItem('easygo-order-history') || []);
             const orderToMove = activeOrders[orderIndex];
             
             if (orderToMove) {
@@ -697,46 +769,61 @@
                 history.push(orderToMove);
                 localStorage.setItem('easygo-order-history', JSON.stringify(history));
                 
-                // Remove from active orders
                 activeOrders.splice(orderIndex, 1);
                 localStorage.setItem('easygo-active-orders', JSON.stringify(activeOrders));
             }
         }
         
-        // Send WhatsApp notification to customer (background)
-        sendCustomerNotification(status);
+        showCustomerWhatsAppModal(status);
         
-        // Reload UI
         loadActiveOrders();
         loadOrderHistory();
         
         alert(`✅ Order status updated to: ${statusTexts[status]}`);
     }
     
-    // ====== SEND WHATSAPP NOTIFICATION (Background) ======
-    function sendCustomerNotification(status) {
+    // ====== WHATSAPP FUNCTIONS ======
+    function showCustomerWhatsAppModal(status) {
         if (!currentOrder) return;
         
         const messages = {
-            'preparing': `👨‍🍳 *EasyGo Order Update* 👨‍🍳%0A%0AYour order #${currentOrder.orderId} is being prepared.%0AEstimated ready time: 15-20 minutes.%0A%0AThank you for choosing EasyGo!`,
-            'out-for-delivery': `🛵 *EasyGo Order Update* 🛵%0A%0AYour order #${currentOrder.orderId} is out for delivery!%0ADelivery partner: ${DELIVERY_NAME}%0AEstimated arrival: 25-30 minutes.%0A%0APlease keep your OTP ready for delivery confirmation.`,
-            'delivered': `✅ *EasyGo Order Update* ✅%0A%0AYour order #${currentOrder.orderId} has been delivered!%0A%0APlease rate your experience:%0Ahttps://www.google.com/maps/place/EasyGo/@22.7767506,75.9581962,17z`
+            'preparing': {
+                title: 'Food Preparation Started',
+                message: `👨‍🍳 *EasyGo Order Update* 👨‍🍳%0A%0AYour order #${currentOrder.orderId} is being prepared.%0AEstimated ready time: 15-20 minutes.%0A%0AThank you for choosing EasyGo!`
+            },
+            'out-for-delivery': {
+                title: 'Out for Delivery',
+                message: `🛵 *EasyGo Order Update* 🛵%0A%0AYour order #${currentOrder.orderId} is out for delivery!%0ADelivery partner: Nishant%0AEstimated arrival: 25-30 minutes.%0A%0APlease keep your OTP ready for delivery confirmation.`
+            },
+            'delivered': {
+                title: 'Order Delivered',
+                message: `✅ *EasyGo Order Update* ✅%0A%0AYour order #${currentOrder.orderId} has been delivered!%0A%0APlease rate your experience:%0Ahttps://www.google.com/maps/place/EasyGo/@22.7767506,75.9581962,17z`
+            }
         };
         
         if (messages[status]) {
-            // Create invisible iframe for background WhatsApp
-            const iframe = document.createElement('iframe');
-            iframe.style.display = 'none';
-            iframe.src = `https://web.whatsapp.com/send?phone=${currentOrder.customerPhone}&text=${messages[status]}`;
-            document.body.appendChild(iframe);
+            const message = messages[status];
+            whatsappNotificationData = {
+                message: message.message,
+                title: message.title
+            };
             
-            // Remove iframe after 2 seconds
-            setTimeout(() => {
-                if (iframe.parentNode) {
-                    iframe.parentNode.removeChild(iframe);
-                }
-            }, 2000);
+            document.getElementById('whatsapp-notification-title').textContent = message.title;
+            document.getElementById('whatsapp-customer-modal').classList.remove('hidden');
         }
+    }
+    
+    function sendCustomerWhatsAppNow() {
+        if (!whatsappNotificationData || !currentOrder) return;
+        
+        const whatsappURL = `https://wa.me/${currentOrder.customerPhone}?text=${whatsappNotificationData.message}`;
+        window.open(whatsappURL, '_blank');
+        closeCustomerWhatsAppModal();
+    }
+    
+    function closeCustomerWhatsAppModal() {
+        document.getElementById('whatsapp-customer-modal').classList.add('hidden');
+        whatsappNotificationData = null;
     }
     
     // ====== DELIVERY CONFIRMATION ======
@@ -751,49 +838,97 @@
     
     function confirmDelivery() {
         const otp = document.getElementById('delivery-otp').value;
+        const partnerName = document.getElementById('delivery-partner-name').value || "Nishant";
         
         if (!otp || otp.length !== 6) {
             alert('Please enter valid 6-digit OTP');
             return;
         }
         
-        // Verify OTP
-        if (otp !== currentOrder.otp && otp !== '800880') { // 800880 for testing
+        if (otp !== currentOrder.otp && otp !== '800880') {
             alert('❌ Invalid OTP. Please check and try again.');
             return;
         }
         
-        // Update order status to delivered
-        updateOrderStatus('delivered');
+        currentOrder.status = 'delivered';
+        currentOrder.deliveredAt = new Date().toISOString();
+        currentOrder.deliveryPartner = partnerName;
+        currentOrder.deliveryOTP = otp;
         
-        // Send delivery confirmation to restaurant
-        sendDeliveryConfirmationToRestaurant(currentOrder, otp);
+        const activeOrders = JSON.parse(localStorage.getItem('easygo-active-orders') || []);
+        const history = JSON.parse(localStorage.getItem('easygo-order-history') || []);
         
-        // Close modal
+        const updatedActive = activeOrders.filter(o => o.orderId !== currentOrder.orderId);
+        
+        history.push(currentOrder);
+        
+        localStorage.setItem('easygo-active-orders', JSON.stringify(updatedActive));
+        localStorage.setItem('easygo-order-history', JSON.stringify(history));
+        
+        showDeliveryWhatsAppModal(currentOrder, partnerName, otp);
+        
         closeDeliveryModal();
+        
+        loadActiveOrders();
+        loadOrderHistory();
     }
     
-    function sendDeliveryConfirmationToRestaurant(order, otp) {
+    function showDeliveryWhatsAppModal(order, partnerName, otp) {
+        document.getElementById('whatsapp-delivery-modal').classList.remove('hidden');
+        
+        document.getElementById('whatsapp-delivery-modal').setAttribute('data-order-id', order.orderId);
+        document.getElementById('whatsapp-delivery-modal').setAttribute('data-customer-phone', order.customerPhone);
+        document.getElementById('whatsapp-delivery-modal').setAttribute('data-customer-name', order.customerName);
+        document.getElementById('whatsapp-delivery-modal').setAttribute('data-partner-name', partnerName);
+        document.getElementById('whatsapp-delivery-modal').setAttribute('data-otp', otp);
+        document.getElementById('whatsapp-delivery-modal').setAttribute('data-amount', order.totalAmount);
+    }
+    
+    function sendDeliveryCustomerWhatsApp() {
+        const modal = document.getElementById('whatsapp-delivery-modal');
+        const orderId = modal.getAttribute('data-order-id');
+        const customerPhone = modal.getAttribute('data-customer-phone');
+        const partnerName = modal.getAttribute('data-partner-name');
+        const otp = modal.getAttribute('data-otp');
+        const amount = modal.getAttribute('data-amount');
+        
+        const message = `✅ *ORDER DELIVERED* ✅%0A%0A` +
+                      `Your EasyGo order has been delivered!%0A%0A` +
+                      `*Order ID:* ${orderId}%0A` +
+                      `*Amount:* ₹${amount}%0A` +
+                      `*Delivery Partner:* ${partnerName}%0A` +
+                      `*OTP Verified:* ${otp}%0A%0A` +
+                      `Please rate your experience:%0A` +
+                      `https://www.google.com/maps/place/EasyGo/@22.7767506,75.9581962,17z`;
+        
+        const whatsappURL = `https://wa.me/${customerPhone}?text=${message}`;
+        window.open(whatsappURL, '_blank');
+    }
+    
+    function sendDeliveryRestaurantWhatsApp() {
+        const modal = document.getElementById('whatsapp-delivery-modal');
+        const orderId = modal.getAttribute('data-order-id');
+        const customerName = modal.getAttribute('data-customer-name');
+        const customerPhone = modal.getAttribute('data-customer-phone');
+        const partnerName = modal.getAttribute('data-partner-name');
+        const otp = modal.getAttribute('data-otp');
+        const amount = modal.getAttribute('data-amount');
+        
         const message = `✅ *DELIVERY CONFIRMED* ✅%0A%0A` +
-                      `Order #${order.orderId} has been delivered.%0A%0A` +
-                      `*Customer:* ${order.customerName}%0A` +
-                      `*Phone:* ${order.customerPhone}%0A` +
-                      `*Amount:* ₹${order.totalAmount}%0A` +
-                      `*Delivery Partner:* ${DELIVERY_NAME}%0A` +
+                      `Order #${orderId} has been delivered.%0A%0A` +
+                      `*Customer:* ${customerName}%0A` +
+                      `*Phone:* ${customerPhone}%0A` +
+                      `*Amount:* ₹${amount}%0A` +
+                      `*Delivery Partner:* ${partnerName}%0A` +
                       `*OTP Verified:* ${otp}%0A` +
                       `*Time:* ${new Date().toLocaleTimeString()}`;
         
-        // Background WhatsApp
-        const iframe = document.createElement('iframe');
-        iframe.style.display = 'none';
-        iframe.src = `https://web.whatsapp.com/send?phone=${RESTAURANT_PHONE}&text=${message}`;
-        document.body.appendChild(iframe);
-        
-        setTimeout(() => {
-            if (iframe.parentNode) {
-                iframe.parentNode.removeChild(iframe);
-            }
-        }, 2000);
+        const whatsappURL = `https://wa.me/${ADMIN_PHONE}?text=${message}`;
+        window.open(whatsappURL, '_blank');
+    }
+    
+    function closeDeliveryWhatsAppModal() {
+        document.getElementById('whatsapp-delivery-modal').classList.add('hidden');
     }
     
     function closeDeliveryModal() {
@@ -814,20 +949,15 @@
     function confirmCancel() {
         const reason = document.getElementById('cancel-reason').value;
         
-        // Send cancellation notification
         const cancelMessage = `❌ *ORDER CANCELLED* ❌%0A%0A` +
                             `We're sorry, but your order #${currentOrder.orderId} has been cancelled.%0A%0A` +
                             `*Refund Information:*%0AYour payment of ₹${currentOrder.totalAmount} will be refunded within 5 working days.%0A%0A` +
                             `Reason: ${reason || 'Not specified'}%0A%0A` +
                             `For any queries, contact: 76518 37322`;
         
-        // Background WhatsApp to customer
-        const iframe1 = document.createElement('iframe');
-        iframe1.style.display = 'none';
-        iframe1.src = `https://web.whatsapp.com/send?phone=${currentOrder.customerPhone}&text=${cancelMessage}`;
-        document.body.appendChild(iframe1);
+        const whatsappURL1 = `https://wa.me/${currentOrder.customerPhone}?text=${cancelMessage}`;
+        window.open(whatsappURL1, '_blank');
         
-        // Background WhatsApp to restaurant
         const restaurantMessage = `❌ *ORDER CANCELLED* ❌%0A%0A` +
                                 `Order #${currentOrder.orderId} has been cancelled.%0A%0A` +
                                 `*Customer:* ${currentOrder.customerName}%0A` +
@@ -836,20 +966,11 @@
                                 `*Reason:* ${reason || 'Not specified'}%0A` +
                                 `*Time:* ${new Date().toLocaleTimeString()}`;
         
-        const iframe2 = document.createElement('iframe');
-        iframe2.style.display = 'none';
-        iframe2.src = `https://web.whatsapp.com/send?phone=${RESTAURANT_PHONE}&text=${restaurantMessage}`;
-        document.body.appendChild(iframe2);
+        const whatsappURL2 = `https://wa.me/${ADMIN_PHONE}?text=${restaurantMessage}`;
+        window.open(whatsappURL2, '_blank');
         
-        setTimeout(() => {
-            if (iframe1.parentNode) iframe1.parentNode.removeChild(iframe1);
-            if (iframe2.parentNode) iframe2.parentNode.removeChild(iframe2);
-        }, 2000);
-        
-        // Update order status
         updateOrderStatus('cancelled');
         
-        // Close modal
         closeCancelModal();
     }
     
@@ -863,7 +984,6 @@
         const history = JSON.parse(localStorage.getItem('easygo-order-history') || '[]');
         const container = document.getElementById('order-history');
         
-        // Filter last 24 hours
         const now = new Date();
         const oneDayAgo = new Date(now.getTime() - (24 * 60 * 60 * 1000));
         
@@ -920,6 +1040,20 @@
         document.getElementById('details-modal').classList.add('hidden');
     }
     
+    function sendCustomerNotification(status) {
+        if (!currentOrder) return;
+        
+        const messages = {
+            'preparing': `👨‍🍳 *EasyGo Order Update* 👨‍🍳%0A%0AYour order #${currentOrder.orderId} is being prepared.%0AEstimated ready time: 15-20 minutes.%0A%0AThank you for choosing EasyGo!`,
+            'out-for-delivery': `🛵 *EasyGo Order Update* 🛵%0A%0AYour order #${currentOrder.orderId} is out for delivery!%0ADelivery partner: Nishant%0AEstimated arrival: 25-30 minutes.%0A%0APlease keep your OTP ready for delivery confirmation.`,
+            'delivered': `✅ *EasyGo Order Update* ✅%0A%0AYour order #${currentOrder.orderId} has been delivered!%0A%0APlease rate your experience:%0Ahttps://www.google.com/maps/place/EasyGo/@22.7767506,75.9581962,17z`
+        };
+        
+        if (messages[status]) {
+            showCustomerWhatsAppModal(status);
+        }
+    }
+    
     // ====== ADMIN AUTHENTICATION ======
     function loginAdmin() {
         const pin = document.getElementById('admin-pin').value;
@@ -929,15 +1063,12 @@
             document.getElementById('login-section').classList.add('hidden');
             document.getElementById('dashboard-section').classList.remove('hidden');
             
-            // Load data
             loadActiveOrders();
             loadOrderHistory();
             
-            // Update time
             updateTime();
             setInterval(updateTime, 1000);
             
-            // Auto-refresh orders every 5 seconds
             setInterval(loadActiveOrders, 5000);
         } else {
             alert('Invalid PIN');
@@ -961,7 +1092,6 @@
     
     // ====== INITIALIZATION ======
     window.addEventListener('DOMContentLoaded', () => {
-        // Check if already logged in
         const isLoggedIn = localStorage.getItem('easygo-admin-logged-in');
         if (isLoggedIn === 'true') {
             document.getElementById('login-section').classList.add('hidden');
@@ -973,7 +1103,6 @@
             setInterval(loadActiveOrders, 5000);
         }
         
-        // Auto-focus PIN input
         document.getElementById('admin-pin').focus();
     });
 </script>
